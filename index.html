@@ -1,12 +1,3 @@
-Com certeza. O uso de alert() (aquelas janelas que travam a tela) é funcional, mas passa uma impressão de sistema antigo ou amador.
-Para deixar a aplicação profissional (nível iFood/Uber), vamos implementar um sistema de "Toasts" (Notificações Flutuantes). Elas aparecem no topo da tela, coloridas (Verde para sucesso, Vermelho para erro) e somem sozinhas após 3 segundos.
-Além disso, adicionei um Tradutor de Erros para que, em vez de aparecer códigos estranhos do Firebase (como auth/email-already-in-use), apareça a mensagem amigável que você pediu: "Este usuário já está cadastrado".
-Aqui está a Versão 12 - UX Profissional:
-O que mudou:
- * Sistema de Feedback (Toast): Substituí todos os alert() por notificações bonitas.
- * Tradutor de Erros: O sistema agora "lê" o erro do Google e traduz para português claro.
- * Feedback Visual: Botões mudam de texto para "Aguarde..." enquanto carregam.
-<!-- end list -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -532,4 +523,3 @@ O que mudou:
 </script>
 </body>
 </html>
-
