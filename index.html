@@ -13,7 +13,7 @@
         :root {
             --primary: #6C63FF; --primary-dark: #554fd8; --bg-app: #F5F7FA; --surface: #ffffff;
             --text-main: #2D3748; --text-light: #718096; --text-lighter: #A0AEC0;
-            --success: #48BB78; --warning: #ED8936; --danger: #F56565;
+            --success: #48BB78; --warning: #ED8936; --danger: #F56565; --info: #4299E1;
             --border: #E2E8F0; --border-light: #EDF2F7;
             --radius: 16px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(0,0,0,0.06);
             --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
@@ -105,6 +105,16 @@
             width: auto; 
         }
         
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
         .btn:disabled { 
             opacity: 0.6; 
             cursor: not-allowed; 
@@ -130,8 +140,8 @@
             border-top-color: var(--primary);
         }
         
-        /* Inputs */
-        .input-field { 
+        /* Inputs & Selects */
+        .input-field, .select-field { 
             width: 100%; 
             padding: 14px 16px; 
             border: 2px solid var(--border-light); 
@@ -143,17 +153,25 @@
             transition: all 0.2s;
         }
         
-        .input-field:focus { 
+        .select-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+        }
+        
+        .input-field:focus, .select-field:focus { 
             border-color: var(--primary); 
             background: white; 
             box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
         }
         
-        .input-field.error { 
+        .input-field.error, .select-field.error { 
             border-color: var(--danger); 
         }
         
-        .input-field.success { 
+        .input-field.success, .select-field.success { 
             border-color: var(--success); 
         }
         
@@ -213,6 +231,7 @@
         .toast.success { border-left-color: var(--success); } 
         .toast.error { border-left-color: var(--danger); }
         .toast.warning { border-left-color: var(--warning); }
+        .toast.info { border-left-color: var(--info); }
         
         @keyframes slideIn { 
             from { transform: translateY(-20px); opacity: 0; } 
@@ -385,6 +404,28 @@
             letter-spacing: 0.5px;
         }
         
+        .badge-status {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+        
+        .status-confirmed {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .status-cancelled {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+        
         /* Skeleton Loading */
         .skeleton {
             background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -415,12 +456,90 @@
         .status-online { background: var(--success); }
         .status-offline { background: var(--danger); }
         
+        /* Reservation Card */
+        .reservation-card {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .reservation-card.pending {
+            border-left-color: var(--warning);
+        }
+        
+        .reservation-card.confirmed {
+            border-left-color: var(--success);
+        }
+        
+        .reservation-card.cancelled {
+            border-left-color: var(--danger);
+        }
+        
+        /* Area Card */
+        .area-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .area-availability {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .available {
+            background: var(--success);
+            color: white;
+        }
+        
+        .unavailable {
+            background: var(--danger);
+            color: white;
+        }
+        
+        /* Time Slots */
+        .time-slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .time-slot {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .time-slot:hover:not(.disabled) {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, 0.1);
+        }
+        
+        .time-slot.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .time-slot.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--border-light);
+        }
+        
         /* Responsive */
         @media (max-width: 480px) {
             .app-container { padding: 0 16px; }
             .grid-menu { grid-template-columns: 1fr; }
             .modal-content { padding: 20px; }
             .card { padding: 20px; }
+            .time-slots { justify-content: center; }
         }
         
         /* Offline Warning */
@@ -442,6 +561,64 @@
         @keyframes slideInUp {
             from { transform: translate(-50%, 20px); opacity: 0; }
             to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--text-lighter);
+            margin-bottom: 16px;
+        }
+        
+        .empty-state p {
+            color: var(--text-light);
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .action-buttons .btn {
+            flex: 1;
         }
     </style>
 </head>
@@ -481,15 +658,10 @@
     // ============================================
     // FIREBASE CONFIGURATION
     // ============================================
-    // IMPORTANTE: Em produção, essas configurações devem vir de variáveis de ambiente
-    // ou de um backend seguro. Nunca expor credenciais completas no frontend.
-    
-    // Configuração mínima necessária para inicialização
     const firebaseConfig = {
         apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
         authDomain: "condosaas-app.firebaseapp.com",
         projectId: "condosaas-app"
-        // Storage e outras configs devem ser carregadas do backend em produção
     };
 
     // ============================================
@@ -498,7 +670,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
         getFirestore, collection, addDoc, getDocs, doc, 
-        updateDoc, query, where, setDoc, getDoc, Timestamp 
+        updateDoc, query, where, setDoc, getDoc, Timestamp,
+        deleteDoc, orderBy
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { 
         getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
@@ -509,29 +682,19 @@
     // VALIDATORS
     // ============================================
     const Validators = {
-        // Validação de CPF
         cpf(value) {
             const clean = String(value).replace(/\D/g, '');
-            
             if (clean.length !== 11) return false;
-            if (/^(\d)\1{10}$/.test(clean)) return false; // CPF com todos dígitos iguais
+            if (/^(\d)\1{10}$/.test(clean)) return false;
             
-            let sum = 0;
-            let remainder;
-            
-            // Primeiro dígito verificador
-            for (let i = 1; i <= 9; i++) {
-                sum += parseInt(clean.substring(i-1, i)) * (11 - i);
-            }
+            let sum = 0, remainder;
+            for (let i = 1; i <= 9; i++) sum += parseInt(clean.substring(i-1, i)) * (11 - i);
             remainder = (sum * 10) % 11;
             if (remainder === 10 || remainder === 11) remainder = 0;
             if (remainder !== parseInt(clean.substring(9, 10))) return false;
             
-            // Segundo dígito verificador
             sum = 0;
-            for (let i = 1; i <= 10; i++) {
-                sum += parseInt(clean.substring(i-1, i)) * (12 - i);
-            }
+            for (let i = 1; i <= 10; i++) sum += parseInt(clean.substring(i-1, i)) * (12 - i);
             remainder = (sum * 10) % 11;
             if (remainder === 10 || remainder === 11) remainder = 0;
             if (remainder !== parseInt(clean.substring(10, 11))) return false;
@@ -539,13 +702,10 @@
             return true;
         },
 
-        // Validação de Email
         email(value) {
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return regex.test(value);
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         },
 
-        // Validação de Senha
         password(value) {
             if (value.length < 6) return { valid: false, message: "Mínimo 6 caracteres" };
             if (!/[A-Z]/.test(value)) return { valid: false, message: "Pelo menos uma letra maiúscula" };
@@ -553,20 +713,12 @@
             return { valid: true, message: "Senha forte" };
         },
 
-        // Validação de Nome
         name(value) {
             if (value.length < 3) return false;
             if (!/^[a-zA-ZÀ-ÿ\s]{3,}$/.test(value)) return false;
             return true;
         },
 
-        // Validação de Telefone
-        phone(value) {
-            const clean = String(value).replace(/\D/g, '');
-            return clean.length >= 10 && clean.length <= 11;
-        },
-
-        // Sanitização de entrada (proteção XSS básica)
         sanitize(input) {
             if (typeof input !== 'string') return input;
             return input
@@ -576,6 +728,20 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#x27;')
                 .replace(/\//g, '&#x2F;');
+        },
+
+        formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('pt-BR', {
+                weekday: 'short',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
+        },
+
+        formatTime(timeStr) {
+            return timeStr.substring(0, 5);
         }
     };
 
@@ -586,9 +752,12 @@
         currentUser: null,
         condoData: null,
         reservations: [],
+        commonAreas: [],
+        myReservations: [],
         isLoading: false,
         isOnline: navigator.onLine,
-        currentModal: null
+        currentModal: null,
+        selectedDate: new Date().toISOString().split('T')[0]
     };
 
     // ============================================
@@ -609,20 +778,24 @@
     // UI CONTROLLER
     // ============================================
     const UI = {
-        // Toast notifications
         toast(msg, type = 'info') {
             const container = document.getElementById('toast-container');
             const t = document.createElement('div');
             t.className = `toast ${type}`;
+            const icons = {
+                success: 'bx-check-circle',
+                error: 'bx-error',
+                warning: 'bx-error-circle',
+                info: 'bx-info-circle'
+            };
             t.innerHTML = `
-                <i class='bx ${type === 'success' ? 'bx-check-circle' : type === 'error' ? 'bx-error' : 'bx-info-circle'}'></i>
+                <i class='bx ${icons[type] || 'bx-info-circle'}'></i>
                 <span>${Validators.sanitize(msg)}</span>
             `;
             container.appendChild(t);
             setTimeout(() => t.remove(), 4000);
         },
 
-        // Loading overlay
         loading(show, text = 'Carregando...') {
             const loadingEl = document.getElementById('loading');
             const textEl = document.getElementById('loadingText');
@@ -631,7 +804,6 @@
             AppState.isLoading = show;
         },
 
-        // Modal management
         showModal(title, content, onClose = null) {
             document.getElementById('modalTitle').textContent = Validators.sanitize(title);
             document.getElementById('modalBody').innerHTML = content;
@@ -647,7 +819,6 @@
             AppState.currentModal = null;
         },
 
-        // Input validation feedback
         showInputError(inputId, message) {
             const input = document.getElementById(inputId);
             const errorEl = input.nextElementSibling;
@@ -669,7 +840,6 @@
             }
         },
 
-        // Render login screen
         renderLogin() {
             document.getElementById('app').innerHTML = `
                 <div style="padding:40px 30px; text-align:center;">
@@ -696,7 +866,6 @@
                     </button>
                 </div>`;
 
-            // Add input validation
             document.getElementById('logEmail').addEventListener('blur', function() {
                 if (this.value && !Validators.email(this.value)) {
                     UI.showInputError('logEmail', 'Email inválido');
@@ -709,7 +878,6 @@
             document.getElementById('btnNew').onclick = () => App.viewRegister();
         },
 
-        // Render registration screen
         renderRegister(condoName = null, condoId = null) {
             const title = condoName ? `Cadastro - ${Validators.sanitize(condoName)}` : 'Criar Conta';
             
@@ -758,7 +926,6 @@
                     }
                 </div>`;
 
-            // Add real-time validations
             const setupValidation = (inputId, validator, message) => {
                 const input = document.getElementById(inputId);
                 input.addEventListener('blur', function() {
@@ -797,7 +964,6 @@
             }
         },
 
-        // Render dashboard
         renderDash(user) {
             let menu = '';
             const userName = user.name.split(' ')[0];
@@ -822,14 +988,14 @@
                         <b>Copiar Link de Convite</b>
                     </div>
                     <div class="grid-menu" style="margin-top: 20px">
-                        <div class="menu-item" onclick="App.modalRes()">
-                            <i class='bx bx-calendar-plus menu-icon'></i>
-                            <h5>Reservar</h5>
-                            <small style="color: var(--text-light);">Áreas comuns</small>
-                        </div>
-                        <div class="menu-item" onclick="App.modalArea()">
+                        <div class="menu-item" onclick="App.modalManageAreas()">
                             <i class='bx bx-map menu-icon'></i>
-                            <h5>Áreas</h5>
+                            <h5>Áreas Comuns</h5>
+                            <small style="color: var(--text-light);">Gerenciar</small>
+                        </div>
+                        <div class="menu-item" onclick="App.viewReservations('sindico')">
+                            <i class='bx bx-calendar-check menu-icon'></i>
+                            <h5>Reservas</h5>
                             <small style="color: var(--text-light);">Gerenciar</small>
                         </div>
                     </div>
@@ -837,15 +1003,15 @@
             } else {
                 menu = `
                     <div class="grid-menu">
-                        <div class="menu-item" onclick="App.modalRes()">
+                        <div class="menu-item" onclick="App.modalNewReservation()">
                             <i class='bx bx-calendar-plus menu-icon'></i>
-                            <h5>Reservar</h5>
+                            <h5>Nova Reserva</h5>
                             <small style="color: var(--text-light);">Áreas comuns</small>
                         </div>
-                        <div class="menu-item">
+                        <div class="menu-item" onclick="App.viewReservations('morador')">
                             <i class='bx bx-calendar-event menu-icon'></i>
-                            <h5>Meus Eventos</h5>
-                            <small style="color: var(--text-light);">Minhas reservas</small>
+                            <h5>Minhas Reservas</h5>
+                            <small style="color: var(--text-light);">Histórico</small>
                         </div>
                     </div>
                 `;
@@ -869,6 +1035,16 @@
                 <div style="padding: 20px;">
                     ${menu}
                     
+                    ${user.role === 'morador' ? `
+                        <div style="margin-top: 30px;">
+                            <h4 style="margin-bottom: 16px; color: var(--text-main);">Áreas Disponíveis</h4>
+                            <div id="areasList">
+                                <div class="skeleton skeleton-card"></div>
+                                <div class="skeleton skeleton-card"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
                     <div style="margin-top: 30px;">
                         <h4 style="margin-bottom: 16px; color: var(--text-main);">Reservas Recentes</h4>
                         <div id="listRes">
@@ -880,48 +1056,187 @@
 
             if (user.role !== 'super') {
                 App.loadRes(user.condoId);
+                if (user.role === 'morador') {
+                    App.loadCommonAreas(user.condoId);
+                    App.loadMyReservations(user.uid);
+                } else if (user.role === 'sindico') {
+                    App.loadCommonAreas(user.condoId);
+                }
             }
         },
 
-        // Render reservations list
-        renderReservations(reservations) {
+        renderCommonAreas(areas) {
+            const container = document.getElementById('areasList');
+            if (!container) return;
+
+            if (!areas || areas.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class='bx bx-map-alt'></i>
+                        <p>Nenhuma área comum cadastrada</p>
+                        ${AppState.currentUser?.role === 'sindico' ? 
+                            '<button class="btn btn-primary btn-sm" onclick="App.modalNewArea()" style="margin-top: 16px;">+ Adicionar Área</button>' : 
+                            ''
+                        }
+                    </div>`;
+                return;
+            }
+
+            const html = areas.map(area => {
+                const isAvailable = area.isActive && !area.isMaintenance;
+                const statusClass = isAvailable ? 'available' : 'unavailable';
+                const statusText = isAvailable ? 'Disponível' : (area.isMaintenance ? 'Manutenção' : 'Indisponível');
+                
+                return `
+                    <div class="card area-card">
+                        <div class="area-availability ${statusClass}">${statusText}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(area.name)}</strong>
+                                <p style="color: var(--text-light); margin-top: 8px; font-size: 0.9rem;">
+                                    ${Validators.sanitize(area.description || '')}
+                                </p>
+                                <div style="margin-top: 12px;">
+                                    <small style="color: var(--text-lighter);">
+                                        <i class='bx bx-user'></i> Capacidade: ${area.capacity || 'N/A'}
+                                    </small>
+                                    ${area.hourlyRate ? `
+                                        <small style="color: var(--text-lighter); margin-left: 16px;">
+                                            <i class='bx bx-dollar'></i> R$ ${area.hourlyRate}/hora
+                                        </small>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${AppState.currentUser?.role === 'morador' && isAvailable ? `
+                            <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                                <button class="btn btn-primary btn-sm" onclick="App.modalNewReservation('${area.id}')">
+                                    <i class='bx bx-calendar-plus'></i> Reservar
+                                </button>
+                            </div>
+                        ` : ''}
+                        
+                        ${AppState.currentUser?.role === 'sindico' ? `
+                            <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;">
+                                <div class="action-buttons">
+                                    <button class="btn btn-outline btn-sm" onclick="App.modalEditArea('${area.id}')">
+                                        <i class='bx bx-edit'></i> Editar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="App.deleteArea('${area.id}')">
+                                        <i class='bx bx-trash'></i> Excluir
+                                    </button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>`;
+            }).join('');
+
+            container.innerHTML = html;
+        },
+
+        renderReservations(reservations, viewType = 'all') {
             const container = document.getElementById('listRes');
             if (!container) return;
 
             if (!reservations || reservations.length === 0) {
                 container.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 40px 20px;">
-                        <i class='bx bx-calendar-x' style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 16px;"></i>
-                        <p style="color: var(--text-light);">Nenhuma reserva encontrada</p>
+                    <div class="empty-state">
+                        <i class='bx bx-calendar-x'></i>
+                        <p>Nenhuma reserva encontrada</p>
                     </div>`;
                 return;
             }
 
-            const html = reservations.map(res => {
-                const spaceName = Validators.sanitize(res.spaceName);
-                const date = Validators.sanitize(res.date);
-                const guestName = Validators.sanitize(res.guestName);
+            let filteredReservations = reservations;
+            if (viewType === 'morador') {
+                filteredReservations = reservations.filter(r => r.userId === AppState.currentUser?.uid);
+            }
+
+            const html = filteredReservations.map(res => {
+                const area = AppState.commonAreas.find(a => a.id === res.areaId);
+                const areaName = area ? area.name : 'Área não encontrada';
+                const statusClass = `status-${res.status || 'pending'}`;
                 
                 return `
-                    <div class="card">
+                    <div class="card reservation-card ${res.status || 'pending'}">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div>
-                                <strong style="color: var(--text-main);">${spaceName}</strong>
-                                <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">${date}</p>
+                            <div style="flex: 1;">
+                                <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(areaName)}</strong>
+                                <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
+                                    ${Validators.formatDate(res.date)} • ${Validators.formatTime(res.startTime)} - ${Validators.formatTime(res.endTime)}
+                                </p>
+                                <div style="margin-top: 8px;">
+                                    <span class="badge-status ${statusClass}">${res.status || 'pendente'}</span>
+                                    ${res.guestName ? `
+                                        <small style="color: var(--text-light); margin-left: 12px;">
+                                            <i class='bx bx-user'></i> ${Validators.sanitize(res.guestName)}
+                                        </small>
+                                    ` : ''}
+                                </div>
                             </div>
-                            <span style="background: var(--bg-app); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; color: var(--primary);">
-                                ${res.status || 'confirmada'}
-                            </span>
                         </div>
-                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light);">
-                            <small style="color: var(--text-light);">
-                                <i class='bx bx-user'></i> ${guestName}
-                            </small>
-                        </div>
+                        
+                        ${res.notes ? `
+                            <div style="margin-top: 12px; padding: 12px; background: var(--bg-app); border-radius: var(--radius-sm);">
+                                <small style="color: var(--text-light);">${Validators.sanitize(res.notes)}</small>
+                            </div>
+                        ` : ''}
+                        
+                        ${AppState.currentUser?.role === 'sindico' && res.status === 'pending' ? `
+                            <div class="action-buttons">
+                                <button class="btn btn-success btn-sm" onclick="App.approveReservation('${res.id}')">
+                                    <i class='bx bx-check'></i> Aprovar
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="App.rejectReservation('${res.id}')">
+                                    <i class='bx bx-x'></i> Rejeitar
+                                </button>
+                            </div>
+                        ` : ''}
+                        
+                        ${AppState.currentUser?.role === 'morador' && res.status === 'pending' ? `
+                            <div style="margin-top: 16px;">
+                                <button class="btn btn-danger btn-sm" onclick="App.cancelReservation('${res.id}')">
+                                    <i class='bx bx-x'></i> Cancelar
+                                </button>
+                            </div>
+                        ` : ''}
                     </div>`;
             }).join('');
 
             container.innerHTML = html;
+        },
+
+        renderReservationsView(viewType = 'sindico') {
+            const isSindico = viewType === 'sindico';
+            const title = isSindico ? 'Gerenciar Reservas' : 'Minhas Reservas';
+            
+            document.getElementById('app').innerHTML = `
+                <div class="header">
+                    <div>
+                        <button onclick="UI.renderDash(AppState.currentUser)" style="background: none; border: none; cursor: pointer; margin-right: 12px;">
+                            <i class='bx bx-arrow-back' style="font-size: 1.5rem; color: var(--text-light);"></i>
+                        </button>
+                        <b>${title}</b>
+                    </div>
+                    <button onclick="App.logout()" style="background: none; border: none; cursor: pointer;">
+                        <i class='bx bx-log-out' style="font-size: 1.5rem; color: var(--danger);"></i>
+                    </button>
+                </div>
+                
+                <div style="padding: 20px;">
+                    <div class="tabs">
+                        <button class="tab active" onclick="App.switchReservationTab('pending', '${viewType}')">Pendentes</button>
+                        <button class="tab" onclick="App.switchReservationTab('confirmed', '${viewType}')">Confirmadas</button>
+                        <button class="tab" onclick="App.switchReservationTab('cancelled', '${viewType}')">Canceladas</button>
+                    </div>
+                    
+                    <div id="reservationsTabContent">
+                        <!-- Reservations will be loaded here -->
+                    </div>
+                </div>`;
+            
+            App.loadReservationsForView('pending', viewType);
         }
     };
 
@@ -929,7 +1244,6 @@
     // APP CONTROLLER
     // ============================================
     const App = {
-        // Initialize app
         async init() {
             // Check online status
             window.addEventListener('online', () => {
@@ -938,9 +1252,12 @@
                 const warning = document.getElementById('offline-warning');
                 if (warning) warning.style.display = 'none';
                 
-                // Refresh data if needed
                 if (AppState.currentUser) {
                     App.loadRes(AppState.currentUser.condoId);
+                    if (AppState.currentUser.role === 'morador') {
+                        App.loadCommonAreas(AppState.currentUser.condoId);
+                        App.loadMyReservations(AppState.currentUser.uid);
+                    }
                 }
             });
 
@@ -986,7 +1303,6 @@
                             AppState.currentUser = { uid: user.uid, ...userData };
                             UI.renderDash(AppState.currentUser);
                             
-                            // Load condo data if not super
                             if (userData.role !== 'super' && userData.condoId) {
                                 const condoDoc = await getDoc(doc(db, "condos", userData.condoId));
                                 if (condoDoc.exists()) {
@@ -1011,7 +1327,6 @@
             });
         },
 
-        // Login handler
         async login(e) {
             e.preventDefault();
             
@@ -1019,7 +1334,6 @@
             const password = document.getElementById('logPass').value;
             const loginBtn = document.getElementById('loginBtn');
             
-            // Validation
             if (!Validators.email(email)) {
                 UI.showInputError('logEmail', 'Email inválido');
                 return;
@@ -1031,14 +1345,11 @@
             }
             
             try {
-                // Disable button and show loading
                 loginBtn.disabled = true;
                 loginBtn.classList.add('btn-loading');
-                
                 UI.loading(true, 'Entrando...');
-                await signInWithEmailAndPassword(auth, email, password);
                 
-                // Clear URL params if any
+                await signInWithEmailAndPassword(auth, email, password);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
             } catch (error) {
@@ -1068,7 +1379,6 @@
             }
         },
 
-        // Registration handler
         async register(e) {
             e.preventDefault();
             
@@ -1083,7 +1393,6 @@
             
             const regBtn = document.getElementById('regBtn');
             
-            // Validation
             if (!Validators.name(data.name)) {
                 UI.showInputError('regName', 'Nome inválido');
                 return;
@@ -1106,15 +1415,12 @@
             }
             
             try {
-                // Disable button and show loading
                 regBtn.disabled = true;
                 regBtn.classList.add('btn-loading');
                 UI.loading(true, 'Criando conta...');
                 
-                // Create user
                 const cred = await createUserWithEmailAndPassword(auth, data.email, data.pass);
                 
-                // Determine role
                 let role = 'morador';
                 if (!data.condoId) {
                     role = 'super';
@@ -1122,7 +1428,6 @@
                     role = 'sindico';
                 }
                 
-                // Create user document
                 await setDoc(doc(db, "users", cred.user.uid), {
                     name: Validators.sanitize(data.name),
                     cpf: data.cpf.replace(/\D/g, ''),
@@ -1134,12 +1439,10 @@
                     updatedAt: Timestamp.now()
                 });
                 
-                // Update profile
                 await updateProfile(cred.user, {
                     displayName: data.name
                 });
                 
-                // Clear URL if came from direct link
                 if (data.condoId) {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
@@ -1172,12 +1475,10 @@
             }
         },
 
-        // View registration page
         viewRegister() {
             UI.renderRegister();
         },
 
-        // Logout
         async logout() {
             try {
                 await signOut(auth);
@@ -1189,7 +1490,700 @@
             }
         },
 
-        // Super admin: Add condo
+        // Common Areas Management
+        async loadCommonAreas(condoId) {
+            if (!condoId) return;
+            
+            try {
+                const q = query(
+                    collection(db, "common_areas"),
+                    where("condoId", "==", condoId),
+                    where("isActive", "==", true)
+                );
+                
+                const snap = await getDocs(q);
+                const areas = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                AppState.commonAreas = areas;
+                UI.renderCommonAreas(areas);
+                
+            } catch (error) {
+                console.error('Error loading common areas:', error);
+                if (!AppState.isOnline) {
+                    UI.toast('Modo offline. Áreas podem estar desatualizadas', 'warning');
+                }
+            }
+        },
+
+        async modalManageAreas() {
+            const areas = AppState.commonAreas;
+            
+            let areasHtml = '';
+            if (areas.length === 0) {
+                areasHtml = `
+                    <div class="empty-state">
+                        <i class='bx bx-map-alt'></i>
+                        <p>Nenhuma área comum cadastrada</p>
+                    </div>`;
+            } else {
+                areasHtml = areas.map(area => `
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${Validators.sanitize(area.name)}</strong>
+                                <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
+                                    ${area.description || ''}
+                                </p>
+                                <div style="margin-top: 8px;">
+                                    <span class="badge-status ${area.isActive ? 'status-confirmed' : 'status-cancelled'}">
+                                        ${area.isActive ? 'Ativa' : 'Inativa'}
+                                    </span>
+                                    ${area.isMaintenance ? 
+                                        '<span class="badge-status status-pending" style="margin-left: 8px;">Manutenção</span>' : ''}
+                                </div>
+                            </div>
+                            <div>
+                                <button class="btn btn-outline btn-sm" onclick="App.modalEditArea('${area.id}')">
+                                    <i class='bx bx-edit'></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            UI.showModal('Gerenciar Áreas Comuns', `
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="App.modalNewArea()">
+                        <i class='bx bx-plus'></i> Nova Área Comum
+                    </button>
+                </div>
+                <div id="areasListModal">
+                    ${areasHtml}
+                </div>
+            `);
+        },
+
+        async modalNewArea() {
+            UI.showModal('Nova Área Comum', `
+                <form onsubmit="App.saveArea(event)" id="formNewArea">
+                    <label for="areaName">Nome da Área *</label>
+                    <input class="input-field" id="areaName" placeholder="Ex: Salão de Festas" required>
+                    <div class="input-error"></div>
+                    
+                    <label for="areaDescription">Descrição</label>
+                    <textarea class="input-field" id="areaDescription" placeholder="Descrição da área..." rows="3"></textarea>
+                    
+                    <label for="areaCapacity">Capacidade (pessoas)</label>
+                    <input type="number" class="input-field" id="areaCapacity" placeholder="100" min="1">
+                    
+                    <label for="areaHourlyRate">Taxa por hora (R$)</label>
+                    <input type="number" step="0.01" class="input-field" id="areaHourlyRate" placeholder="0.00">
+                    
+                    <label for="areaRules">Regras de uso</label>
+                    <textarea class="input-field" id="areaRules" placeholder="Regras para utilização..." rows="3"></textarea>
+                    
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary" id="saveAreaBtn">Salvar Área</button>
+                        <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `);
+        },
+
+        async modalEditArea(areaId) {
+            const area = AppState.commonAreas.find(a => a.id === areaId);
+            if (!area) return;
+            
+            UI.showModal('Editar Área Comum', `
+                <form onsubmit="App.updateArea(event, '${areaId}')" id="formEditArea">
+                    <label for="editAreaName">Nome da Área *</label>
+                    <input class="input-field" id="editAreaName" value="${Validators.sanitize(area.name)}" required>
+                    <div class="input-error"></div>
+                    
+                    <label for="editAreaDescription">Descrição</label>
+                    <textarea class="input-field" id="editAreaDescription" rows="3">${Validators.sanitize(area.description || '')}</textarea>
+                    
+                    <label for="editAreaCapacity">Capacidade (pessoas)</label>
+                    <input type="number" class="input-field" id="editAreaCapacity" value="${area.capacity || ''}" min="1">
+                    
+                    <label for="editAreaHourlyRate">Taxa por hora (R$)</label>
+                    <input type="number" step="0.01" class="input-field" id="editAreaHourlyRate" value="${area.hourlyRate || ''}">
+                    
+                    <label for="editAreaRules">Regras de uso</label>
+                    <textarea class="input-field" id="editAreaRules" rows="3">${Validators.sanitize(area.rules || '')}</textarea>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <label style="flex: 1;">
+                            <input type="checkbox" id="editAreaActive" ${area.isActive ? 'checked' : ''}>
+                            <span style="margin-left: 8px;">Ativa</span>
+                        </label>
+                        <label style="flex: 1;">
+                            <input type="checkbox" id="editAreaMaintenance" ${area.isMaintenance ? 'checked' : ''}>
+                            <span style="margin-left: 8px;">Em manutenção</span>
+                        </label>
+                    </div>
+                    
+                    <div class="action-buttons" style="margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary" id="updateAreaBtn">Atualizar</button>
+                        <button type="button" class="btn btn-danger" onclick="App.deleteArea('${areaId}')">Excluir</button>
+                        <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `);
+        },
+
+        async saveArea(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('areaName').value;
+            const btn = document.getElementById('saveAreaBtn');
+            
+            if (!name.trim()) {
+                UI.showInputError('areaName', 'Nome é obrigatório');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.classList.add('btn-loading');
+                UI.loading(true, 'Salvando área...');
+                
+                const areaData = {
+                    name: Validators.sanitize(name),
+                    description: Validators.sanitize(document.getElementById('areaDescription').value),
+                    capacity: parseInt(document.getElementById('areaCapacity').value) || null,
+                    hourlyRate: parseFloat(document.getElementById('areaHourlyRate').value) || null,
+                    rules: Validators.sanitize(document.getElementById('areaRules').value),
+                    condoId: AppState.currentUser.condoId,
+                    isActive: true,
+                    isMaintenance: false,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                };
+                
+                await addDoc(collection(db, "common_areas"), areaData);
+                
+                UI.hideModal();
+                UI.toast('Área comum criada com sucesso!', 'success');
+                App.loadCommonAreas(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                console.error('Error saving area:', error);
+                UI.toast('Erro ao criar área', 'error');
+            } finally {
+                UI.loading(false);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-loading');
+                }
+            }
+        },
+
+        async updateArea(e, areaId) {
+            e.preventDefault();
+            
+            const name = document.getElementById('editAreaName').value;
+            const btn = document.getElementById('updateAreaBtn');
+            
+            if (!name.trim()) {
+                UI.showInputError('editAreaName', 'Nome é obrigatório');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.classList.add('btn-loading');
+                UI.loading(true, 'Atualizando área...');
+                
+                const areaData = {
+                    name: Validators.sanitize(name),
+                    description: Validators.sanitize(document.getElementById('editAreaDescription').value),
+                    capacity: parseInt(document.getElementById('editAreaCapacity').value) || null,
+                    hourlyRate: parseFloat(document.getElementById('editAreaHourlyRate').value) || null,
+                    rules: Validators.sanitize(document.getElementById('editAreaRules').value),
+                    isActive: document.getElementById('editAreaActive').checked,
+                    isMaintenance: document.getElementById('editAreaMaintenance').checked,
+                    updatedAt: Timestamp.now()
+                };
+                
+                await updateDoc(doc(db, "common_areas", areaId), areaData);
+                
+                UI.hideModal();
+                UI.toast('Área atualizada com sucesso!', 'success');
+                App.loadCommonAreas(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                console.error('Error updating area:', error);
+                UI.toast('Erro ao atualizar área', 'error');
+            } finally {
+                UI.loading(false);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-loading');
+                }
+            }
+        },
+
+        async deleteArea(areaId) {
+            if (!confirm('Tem certeza que deseja excluir esta área?')) return;
+            
+            try {
+                UI.loading(true, 'Excluindo área...');
+                await deleteDoc(doc(db, "common_areas", areaId));
+                
+                UI.hideModal();
+                UI.toast('Área excluída com sucesso!', 'success');
+                App.loadCommonAreas(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                console.error('Error deleting area:', error);
+                UI.toast('Erro ao excluir área', 'error');
+            } finally {
+                UI.loading(false);
+            }
+        },
+
+        // Reservations Management
+        async loadRes(condoId) {
+            if (!condoId) return;
+            
+            try {
+                const q = query(
+                    collection(db, "reservations"), 
+                    where("condoId", "==", condoId),
+                    orderBy("date", "desc"),
+                    orderBy("startTime", "desc")
+                );
+                
+                const snap = await getDocs(q);
+                const reservations = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                AppState.reservations = reservations;
+                UI.renderReservations(reservations);
+                
+            } catch (error) {
+                console.error('Error loading reservations:', error);
+                if (!AppState.isOnline) {
+                    UI.toast('Modo offline. Dados podem estar desatualizados', 'warning');
+                } else {
+                    UI.toast('Erro ao carregar reservas', 'error');
+                }
+            }
+        },
+
+        async loadMyReservations(userId) {
+            try {
+                const q = query(
+                    collection(db, "reservations"), 
+                    where("userId", "==", userId),
+                    orderBy("date", "desc"),
+                    orderBy("startTime", "desc")
+                );
+                
+                const snap = await getDocs(q);
+                const reservations = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                AppState.myReservations = reservations;
+                
+            } catch (error) {
+                console.error('Error loading my reservations:', error);
+            }
+        },
+
+        async modalNewReservation(areaId = null) {
+            const areas = AppState.commonAreas.filter(area => area.isActive && !area.isMaintenance);
+            
+            if (areas.length === 0) {
+                UI.toast('Nenhuma área disponível para reserva', 'warning');
+                return;
+            }
+            
+            let areaOptions = areas.map(area => `
+                <option value="${area.id}" ${areaId === area.id ? 'selected' : ''}>
+                    ${Validators.sanitize(area.name)} ${area.capacity ? `(${area.capacity} pessoas)` : ''}
+                </option>
+            `).join('');
+            
+            // Generate time slots (8:00 to 22:00)
+            const timeSlots = [];
+            for (let hour = 8; hour <= 22; hour++) {
+                for (let minute = 0; minute < 60; minute += 30) {
+                    const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                    timeSlots.push(time);
+                }
+            }
+            
+            const timeOptions = timeSlots.map(time => `
+                <option value="${time}">${time}</option>
+            `).join('');
+            
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const defaultDate = tomorrow.toISOString().split('T')[0];
+            
+            UI.showModal('Nova Reserva', `
+                <form onsubmit="App.saveReservation(event)" id="formNewReservation">
+                    <label for="reservationArea">Área Comum *</label>
+                    <select class="select-field" id="reservationArea" required>
+                        <option value="">Selecione uma área</option>
+                        ${areaOptions}
+                    </select>
+                    
+                    <label for="reservationDate">Data *</label>
+                    <input type="date" class="input-field" id="reservationDate" value="${defaultDate}" min="${new Date().toISOString().split('T')[0]}" required>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label for="reservationStartTime">Hora Início *</label>
+                            <select class="select-field" id="reservationStartTime" required>
+                                <option value="">Selecione</option>
+                                ${timeOptions}
+                            </select>
+                        </div>
+                        <div>
+                            <label for="reservationEndTime">Hora Fim *</label>
+                            <select class="select-field" id="reservationEndTime" required>
+                                <option value="">Selecione</option>
+                                ${timeOptions}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <label for="reservationGuestCount">Número de Convidados</label>
+                    <input type="number" class="input-field" id="reservationGuestCount" placeholder="0" min="0">
+                    
+                    <label for="reservationNotes">Observações</label>
+                    <textarea class="input-field" id="reservationNotes" placeholder="Informações adicionais..." rows="3"></textarea>
+                    
+                    <div class="action-buttons">
+                        <button type="submit" class="btn btn-primary" id="saveReservationBtn">Solicitar Reserva</button>
+                        <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
+                    </div>
+                </form>
+            `);
+        },
+
+        async saveReservation(e) {
+            e.preventDefault();
+            
+            const areaId = document.getElementById('reservationArea').value;
+            const date = document.getElementById('reservationDate').value;
+            const startTime = document.getElementById('reservationStartTime').value;
+            const endTime = document.getElementById('reservationEndTime').value;
+            const btn = document.getElementById('saveReservationBtn');
+            
+            if (!areaId) {
+                UI.toast('Selecione uma área', 'warning');
+                return;
+            }
+            
+            if (!date) {
+                UI.toast('Selecione uma data', 'warning');
+                return;
+            }
+            
+            if (!startTime || !endTime) {
+                UI.toast('Selecione horário de início e fim', 'warning');
+                return;
+            }
+            
+            if (startTime >= endTime) {
+                UI.toast('Hora de início deve ser antes da hora de fim', 'warning');
+                return;
+            }
+            
+            try {
+                btn.disabled = true;
+                btn.classList.add('btn-loading');
+                UI.loading(true, 'Criando reserva...');
+                
+                const area = AppState.commonAreas.find(a => a.id === areaId);
+                if (!area) {
+                    throw new Error('Área não encontrada');
+                }
+                
+                // Check for conflicts
+                const conflicts = await App.checkReservationConflict(areaId, date, startTime, endTime);
+                if (conflicts) {
+                    UI.toast('Já existe uma reserva neste horário', 'warning');
+                    return;
+                }
+                
+                const reservationData = {
+                    areaId: areaId,
+                    areaName: area.name,
+                    condoId: AppState.currentUser.condoId,
+                    userId: AppState.currentUser.uid,
+                    userName: AppState.currentUser.name,
+                    userUnit: AppState.currentUser.unit,
+                    date: date,
+                    startTime: startTime + ':00',
+                    endTime: endTime + ':00',
+                    guestCount: parseInt(document.getElementById('reservationGuestCount').value) || 0,
+                    notes: Validators.sanitize(document.getElementById('reservationNotes').value),
+                    status: 'pending',
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                };
+                
+                await addDoc(collection(db, "reservations"), reservationData);
+                
+                UI.hideModal();
+                UI.toast('Reserva solicitada com sucesso! Aguarde aprovação.', 'success');
+                
+                // Reload data
+                App.loadRes(AppState.currentUser.condoId);
+                App.loadMyReservations(AppState.currentUser.uid);
+                
+            } catch (error) {
+                console.error('Error saving reservation:', error);
+                UI.toast('Erro ao criar reserva', 'error');
+            } finally {
+                UI.loading(false);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-loading');
+                }
+            }
+        },
+
+        async checkReservationConflict(areaId, date, startTime, endTime) {
+            try {
+                const q = query(
+                    collection(db, "reservations"),
+                    where("areaId", "==", areaId),
+                    where("date", "==", date),
+                    where("status", "==", "confirmed")
+                );
+                
+                const snap = await getDocs(q);
+                
+                const newStart = new Date(`${date}T${startTime}`);
+                const newEnd = new Date(`${date}T${endTime}`);
+                
+                for (const doc of snap.docs) {
+                    const reservation = doc.data();
+                    const existingStart = new Date(`${date}T${reservation.startTime}`);
+                    const existingEnd = new Date(`${date}T${reservation.endTime}`);
+                    
+                    if (
+                        (newStart >= existingStart && newStart < existingEnd) ||
+                        (newEnd > existingStart && newEnd <= existingEnd) ||
+                        (newStart <= existingStart && newEnd >= existingEnd)
+                    ) {
+                        return true;
+                    }
+                }
+                
+                return false;
+            } catch (error) {
+                console.error('Error checking conflicts:', error);
+                return false;
+            }
+        },
+
+        async approveReservation(reservationId) {
+            try {
+                UI.loading(true, 'Aprovando reserva...');
+                
+                await updateDoc(doc(db, "reservations", reservationId), {
+                    status: 'confirmed',
+                    updatedAt: Timestamp.now()
+                });
+                
+                UI.toast('Reserva aprovada com sucesso!', 'success');
+                App.loadRes(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                console.error('Error approving reservation:', error);
+                UI.toast('Erro ao aprovar reserva', 'error');
+            } finally {
+                UI.loading(false);
+            }
+        },
+
+        async rejectReservation(reservationId) {
+            try {
+                UI.loading(true, 'Rejeitando reserva...');
+                
+                await updateDoc(doc(db, "reservations", reservationId), {
+                    status: 'cancelled',
+                    updatedAt: Timestamp.now()
+                });
+                
+                UI.toast('Reserva rejeitada', 'success');
+                App.loadRes(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                console.error('Error rejecting reservation:', error);
+                UI.toast('Erro ao rejeitar reserva', 'error');
+            } finally {
+                UI.loading(false);
+            }
+        },
+
+        async cancelReservation(reservationId) {
+            if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
+            
+            try {
+                UI.loading(true, 'Cancelando reserva...');
+                
+                await updateDoc(doc(db, "reservations", reservationId), {
+                    status: 'cancelled',
+                    updatedAt: Timestamp.now()
+                });
+                
+                UI.toast('Reserva cancelada com sucesso!', 'success');
+                App.loadRes(AppState.currentUser.condoId);
+                App.loadMyReservations(AppState.currentUser.uid);
+                
+            } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                UI.toast('Erro ao cancelar reserva', 'error');
+            } finally {
+                UI.loading(false);
+            }
+        },
+
+        async loadReservationsForView(status, viewType) {
+            try {
+                const container = document.getElementById('reservationsTabContent');
+                if (!container) return;
+                
+                container.innerHTML = `
+                    <div class="skeleton skeleton-card"></div>
+                    <div class="skeleton skeleton-card"></div>
+                `;
+                
+                let q;
+                if (viewType === 'sindico') {
+                    q = query(
+                        collection(db, "reservations"),
+                        where("condoId", "==", AppState.currentUser.condoId),
+                        where("status", "==", status),
+                        orderBy("date", "desc"),
+                        orderBy("startTime", "desc")
+                    );
+                } else {
+                    q = query(
+                        collection(db, "reservations"),
+                        where("userId", "==", AppState.currentUser.uid),
+                        where("status", "==", status),
+                        orderBy("date", "desc"),
+                        orderBy("startTime", "desc")
+                    );
+                }
+                
+                const snap = await getDocs(q);
+                const reservations = snap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Render reservations
+                if (reservations.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class='bx bx-calendar-x'></i>
+                            <p>Nenhuma reserva ${status === 'pending' ? 'pendente' : status === 'confirmed' ? 'confirmada' : 'cancelada'}</p>
+                        </div>`;
+                    return;
+                }
+                
+                const html = reservations.map(res => {
+                    const area = AppState.commonAreas.find(a => a.id === res.areaId);
+                    const areaName = area ? area.name : 'Área não encontrada';
+                    
+                    return `
+                        <div class="card reservation-card ${res.status}">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(areaName)}</strong>
+                                    <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
+                                        ${Validators.formatDate(res.date)} • ${Validators.formatTime(res.startTime)} - ${Validators.formatTime(res.endTime)}
+                                    </p>
+                                    <div style="margin-top: 8px;">
+                                        <small style="color: var(--text-light);">
+                                            <i class='bx bx-user'></i> ${Validators.sanitize(res.userName)} • ${Validators.sanitize(res.userUnit)}
+                                        </small>
+                                        ${res.guestCount > 0 ? `
+                                            <small style="color: var(--text-light); margin-left: 12px;">
+                                                <i class='bx bx-group'></i> ${res.guestCount} convidado(s)
+                                            </small>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            ${res.notes ? `
+                                <div style="margin-top: 12px; padding: 12px; background: var(--bg-app); border-radius: var(--radius-sm);">
+                                    <small style="color: var(--text-light);">${Validators.sanitize(res.notes)}</small>
+                                </div>
+                            ` : ''}
+                            
+                            ${viewType === 'sindico' && res.status === 'pending' ? `
+                                <div class="action-buttons">
+                                    <button class="btn btn-success btn-sm" onclick="App.approveReservation('${res.id}')">
+                                        <i class='bx bx-check'></i> Aprovar
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="App.rejectReservation('${res.id}')">
+                                        <i class='bx bx-x'></i> Rejeitar
+                                    </button>
+                                </div>
+                            ` : ''}
+                            
+                            ${viewType === 'morador' && res.status === 'pending' ? `
+                                <div style="margin-top: 16px;">
+                                    <button class="btn btn-danger btn-sm" onclick="App.cancelReservation('${res.id}')">
+                                        <i class='bx bx-x'></i> Cancelar
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>`;
+                }).join('');
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error loading reservations for view:', error);
+                const container = document.getElementById('reservationsTabContent');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class='bx bx-error'></i>
+                            <p>Erro ao carregar reservas</p>
+                        </div>`;
+                }
+            }
+        },
+
+        switchReservationTab(status, viewType) {
+            // Update active tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Load reservations for this tab
+            App.loadReservationsForView(status, viewType);
+        },
+
+        viewReservations(viewType) {
+            UI.renderReservationsView(viewType);
+        },
+
+        // Super admin functions
         async modalAddCondo() {
             UI.showModal('Novo Condomínio', `
                 <form onsubmit="App.saveCondo(event)" id="formCondo">
@@ -1246,7 +2240,6 @@
             }
         },
 
-        // Super admin: Add sindico
         async modalAddSindico() {
             UI.loading(true, 'Carregando condomínios...');
             try {
@@ -1274,7 +2267,7 @@
                         <div class="input-hint">Mínimo 6 caracteres</div>
                         
                         <label for="sCondo">Condomínio *</label>
-                        <select class="input-field" id="sCondo" required>
+                        <select class="select-field" id="sCondo" required>
                             <option value="">Selecione um condomínio</option>
                             ${options}
                         </select>
@@ -1297,7 +2290,6 @@
             const condoId = document.getElementById('sCondo').value;
             const btn = document.getElementById('saveSindicoBtn');
             
-            // Validation
             if (!Validators.name(name)) {
                 UI.showInputError('sName', 'Nome inválido');
                 return;
@@ -1323,7 +2315,6 @@
                 btn.classList.add('btn-loading');
                 UI.loading(true, 'Criando síndico...');
                 
-                // Create user with secondary auth instance
                 const secondaryApp = initializeApp(firebaseConfig, "Secondary");
                 const secondaryAuth = getAuth(secondaryApp);
                 
@@ -1362,7 +2353,6 @@
             }
         },
 
-        // Copy invite link
         copyInvite(condoId) {
             const link = `${window.location.origin}${window.location.pathname}?cadastro=true&condoId=${condoId}`;
             
@@ -1372,75 +2362,6 @@
                 console.error('Erro ao copiar:', err);
                 UI.toast('Erro ao copiar link', 'error');
             });
-        },
-
-        // Load reservations
-        async loadRes(condoId) {
-            if (!condoId) return;
-            
-            try {
-                const q = query(collection(db, "reservations"), 
-                    where("condoId", "==", condoId),
-                    where("date", ">=", new Date().toISOString().split('T')[0])
-                );
-                
-                const snap = await getDocs(q);
-                const reservations = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                AppState.reservations = reservations;
-                UI.renderReservations(reservations);
-                
-            } catch (error) {
-                console.error('Error loading reservations:', error);
-                
-                if (!AppState.isOnline) {
-                    UI.toast('Modo offline. Dados podem estar desatualizados', 'warning');
-                } else {
-                    UI.toast('Erro ao carregar reservas', 'error');
-                }
-            }
-        },
-
-        // Modal for reservations
-        async modalRes() {
-            if (!AppState.isOnline) {
-                UI.toast('Você precisa estar online para fazer reservas', 'warning');
-                return;
-            }
-            
-            UI.showModal('Nova Reserva', `
-                <div class="card" style="margin-bottom: 20px; text-align: center; padding: 30px;">
-                    <i class='bx bx-calendar-plus' style="font-size: 3rem; color: var(--primary); margin-bottom: 16px;"></i>
-                    <p style="color: var(--text-light);">Funcionalidade de reserva em desenvolvimento</p>
-                </div>
-                <p style="text-align: center; color: var(--text-light);">Em breve você poderá reservar áreas comuns do condomínio.</p>
-            `);
-        },
-
-        // Modal for areas
-        async modalArea() {
-            UI.showModal('Áreas Comuns', `
-                <div style="display: grid; gap: 16px;">
-                    <div class="card">
-                        <h4 style="color: var(--text-main); margin-bottom: 8px;">Salão de Festas</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Capacidade: 100 pessoas</p>
-                        <small style="color: var(--text-lighter);">Disponível para reserva</small>
-                    </div>
-                    <div class="card">
-                        <h4 style="color: var(--text-main); margin-bottom: 8px;">Churrasqueira</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">2 unidades disponíveis</p>
-                        <small style="color: var(--text-lighter);">Reserva com antecedência</small>
-                    </div>
-                    <div class="card">
-                        <h4 style="color: var(--text-main); margin-bottom: 8px;">Quadra Poliesportiva</h4>
-                        <p style="color: var(--text-light); font-size: 0.9rem;">Futsal/Vôlei/Basquete</p>
-                        <small style="color: var(--text-lighter);">Horário limitado</small>
-                    </div>
-                </div>
-            `);
         }
     };
 
