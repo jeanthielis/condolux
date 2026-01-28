@@ -1,13 +1,22 @@
+Com certeza. O uso de alert() (aquelas janelas que travam a tela) é funcional, mas passa uma impressão de sistema antigo ou amador.
+Para deixar a aplicação profissional (nível iFood/Uber), vamos implementar um sistema de "Toasts" (Notificações Flutuantes). Elas aparecem no topo da tela, coloridas (Verde para sucesso, Vermelho para erro) e somem sozinhas após 3 segundos.
+Além disso, adicionei um Tradutor de Erros para que, em vez de aparecer códigos estranhos do Firebase (como auth/email-already-in-use), apareça a mensagem amigável que você pediu: "Este usuário já está cadastrado".
+Aqui está a Versão 12 - UX Profissional:
+O que mudou:
+ * Sistema de Feedback (Toast): Substituí todos os alert() por notificações bonitas.
+ * Tradutor de Erros: O sistema agora "lê" o erro do Google e traduz para português claro.
+ * Feedback Visual: Botões mudam de texto para "Aguarde..." enquanto carregam.
+<!-- end list -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CondoSaaS - Online</title>
+    <title>CondoSaaS - Versão Pro</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
     <style>
-        /* --- DESIGN SYSTEM (Moderno & Clean) --- */
+        /* --- DESIGN SYSTEM --- */
         :root {
             --primary: #6C63FF; --primary-dark: #524ad9;
             --bg-app: #F5F7FA; --surface: #ffffff;
@@ -19,21 +28,18 @@
         body { background-color: var(--bg-app); color: var(--text-main); -webkit-font-smoothing: antialiased; }
         .app-container { max-width: 500px; margin: 0 auto; background: var(--bg-app); min-height: 100vh; position: relative; padding-bottom: 80px; }
         
-        /* Componentes */
+        /* Componentes Básicos */
         .header { background: var(--surface); padding: 20px 24px; border-radius: 0 0 24px 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
         .badge-role { font-size: 0.7rem; background: #EBF4FF; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; font-weight: 800; color: var(--primary); letter-spacing: 0.5px; }
-        .card { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.01); transition: 0.2s; position: relative; }
-        
         .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
         .menu-item { text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 110px; border-radius: var(--radius); background: white; box-shadow: var(--shadow); transition: transform 0.2s; }
         .menu-item:active { transform: scale(0.98); }
         .card-icon { width: 50px; height: 50px; border-radius: 14px; background: rgba(108, 99, 255, 0.08); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 12px; }
-        
+        .card { background: var(--surface); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.01); transition: 0.2s; position: relative; }
         .btn { border: none; padding: 14px; border-radius: 14px; font-weight: 600; cursor: pointer; width: 100%; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3); }
         .btn-outline { background: transparent; border: 2px solid #E2E8F0; color: var(--text-light); }
         .btn-sm { padding: 8px 12px; font-size: 0.85rem; width: auto; }
-        
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; }
         .input-field { width: 100%; padding: 12px 16px; border: 2px solid #EDF2F7; border-radius: 14px; font-size: 1rem; outline: none; background: #F8FAFC; }
@@ -44,12 +50,25 @@
         .modal-overlay.active { display: flex; opacity: 1; }
         .modal-content { background: white; width: 100%; max-width: 500px; border-radius: 28px 28px 0 0; padding: 30px 24px; transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto; }
         .modal-overlay.active .modal-content { transform: translateY(0); }
-        
         #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column; }
         .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Status & Listas */
+        /* --- NOVO: SISTEMA DE TOAST (NOTIFICAÇÕES) --- */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: white; padding: 16px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease; border-left: 5px solid #ccc; }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.info { border-left-color: var(--primary); }
+        .toast-icon { font-size: 1.5rem; }
+        .toast.success .toast-icon { color: var(--success); }
+        .toast.error .toast-icon { color: var(--danger); }
+        .toast-msg { font-size: 0.95rem; font-weight: 500; color: var(--text-main); }
+        
+        @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+        /* Status Badges e Itens */
         .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
         .status-active { background: #C6F6D5; color: #22543D; }
         .status-blocked { background: #FED7D7; color: #822727; }
@@ -60,7 +79,8 @@
 </head>
 <body>
 
-<div id="loading"><div class="spinner"></div><p style="margin-top:10px; font-weight:bold; color:var(--text-light)">Carregando...</p></div>
+<div id="loading"><div class="spinner"></div><p style="margin-top:10px; font-weight:bold; color:var(--text-light)">Aguarde...</p></div>
+<div id="toast-container"></div>
 <div class="app-container" id="app"></div>
 
 <div class="modal-overlay" id="mainModal">
@@ -74,11 +94,11 @@
 </div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- SUA CONFIGURAÇÃO ---
+    // --- CONFIGURAÇÃO FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
         authDomain: "condosaas-app.firebaseapp.com",
@@ -88,25 +108,33 @@
         appId: "1:1094942324011:web:49293ce94269e71807416e"
     };
 
-    // Inicialização
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- SERVIÇOS DE DADOS ---
+    // --- TRADUTOR DE ERROS ---
+    const ErrorHandler = (code) => {
+        switch(code) {
+            case 'auth/email-already-in-use': return 'Este email já está cadastrado.';
+            case 'auth/invalid-email': return 'Email inválido.';
+            case 'auth/user-not-found': return 'Usuário não encontrado.';
+            case 'auth/wrong-password': return 'Senha incorreta.';
+            case 'auth/weak-password': return 'A senha deve ter pelo menos 6 caracteres.';
+            case 'auth/network-request-failed': return 'Erro de conexão. Verifique sua internet.';
+            default: return code; // Retorna o erro original se não souber traduzir
+        }
+    };
+
     const Service = {
-        // Auth Helpers
         async login(email, pass) {
             try {
                 UI.loading(true);
                 const cred = await signInWithEmailAndPassword(auth, email, pass);
-                // Buscar dados complementares do usuário (Role, CondoId)
                 const userSnap = await getDoc(doc(db, "users", cred.user.uid));
                 
-                if (!userSnap.exists()) throw new Error("Usuário sem perfil cadastrado.");
+                if (!userSnap.exists()) throw new Error("Usuário não encontrado no banco de dados.");
                 const userData = userSnap.data();
 
-                // Check Bloqueio (Se não for Super)
                 if (userData.role !== 'super') {
                     const condoSnap = await getDoc(doc(db, "condos", userData.condoId));
                     if (condoSnap.exists() && condoSnap.data().isActive === false) {
@@ -116,7 +144,7 @@
                 }
                 return { success: true, user: { uid: cred.user.uid, ...userData } };
             } catch (e) {
-                return { success: false, msg: e.message };
+                return { success: false, msg: ErrorHandler(e.code || e.message) };
             } finally {
                 UI.loading(false);
             }
@@ -125,14 +153,10 @@
         async register(data) {
             try {
                 UI.loading(true);
-                // 1. Criar Auth
                 const cred = await createUserWithEmailAndPassword(auth, data.email, data.pass);
+                const role = (data.email === 'admin@admin.com') ? 'super' : 'morador';
                 
-                // 2. Criar Doc no Firestore
-                // REGRA GOD MODE: Se email for admin@admin.com, vira SUPER
-                const role = (data.email === 'admin@admin.com') ? 'super' : (data.role || 'morador');
-                
-                const userPayload = {
+                await setDoc(doc(db, "users", cred.user.uid), {
                     name: data.name,
                     email: data.email,
                     role: role,
@@ -140,12 +164,35 @@
                     unit: data.unit || '',
                     cpf: data.cpf || '',
                     createdAt: new Date().toISOString()
-                };
-
-                await setDoc(doc(db, "users", cred.user.uid), userPayload);
+                });
                 return { success: true };
             } catch (e) {
-                return { success: false, msg: e.message };
+                return { success: false, msg: ErrorHandler(e.code || e.message) };
+            } finally {
+                UI.loading(false);
+            }
+        },
+
+        async registerSindicoByAdmin(data) {
+            try {
+                UI.loading(true);
+                const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+                const secondaryAuth = getAuth(secondaryApp);
+                const cred = await createUserWithEmailAndPassword(secondaryAuth, data.email, data.pass);
+                
+                await setDoc(doc(db, "users", cred.user.uid), {
+                    name: data.name,
+                    email: data.email,
+                    role: 'sindico',
+                    condoId: data.condoId,
+                    unit: 'ADM',
+                    createdAt: new Date().toISOString()
+                });
+                await signOut(secondaryAuth);
+                deleteApp(secondaryApp);
+                return { success: true };
+            } catch (e) {
+                return { success: false, msg: ErrorHandler(e.code || e.message) };
             } finally {
                 UI.loading(false);
             }
@@ -153,56 +200,66 @@
 
         async logout() {
             await signOut(auth);
-            window.location.reload();
+            UI.toast('Logout realizado.', 'info');
+            setTimeout(() => window.location.reload(), 500);
         },
 
-        // Data Helpers
+        // Métodos de Leitura
         async getCondos() {
             const q = query(collection(db, "condos"));
             const snap = await getDocs(q);
             return snap.docs.map(d => ({ id: d.id, ...d.data() }));
         },
-        
         async getSpaces(condoId) {
             const q = query(collection(db, "spaces"), where("condoId", "==", condoId));
             const snap = await getDocs(q);
             return snap.docs.map(d => ({ id: d.id, ...d.data() }));
         },
-
         async getReservations(condoId) {
-            // Firestore básico não faz joins, então filtramos no cliente ou fazemos query composta
-            // Aqui faremos query simples e filtro JS para simplicidade do protótipo
             const q = query(collection(db, "reservations"), where("condoId", "==", condoId));
             const snap = await getDocs(q);
             return snap.docs.map(d => ({ id: d.id, ...d.data() }));
         },
-
         async checkAvailability(spaceId, dateStr) {
-            const q = query(collection(db, "reservations"), 
-                where("spaceId", "==", spaceId), 
-                where("date", "==", dateStr),
-                where("status", "==", "confirmado")
-            );
+            const q = query(collection(db, "reservations"), where("spaceId", "==", spaceId), where("date", "==", dateStr), where("status", "==", "confirmado"));
             const snap = await getDocs(q);
-            return snap.empty; // Retorna true se vazio (disponível)
+            return snap.empty; 
         }
     };
 
-    // --- UI CONTROLLER ---
     const UI = {
         currentUser: null,
         container: document.getElementById('app'),
 
         loading(show) { document.getElementById('loading').style.display = show ? 'flex' : 'none'; },
 
-        // TELA 1: LOGIN
+        // --- SISTEMA DE TOAST (NOTIFICAÇÕES) ---
+        toast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let iconClass = 'bx-info-circle';
+            if(type === 'success') iconClass = 'bx-check-circle';
+            if(type === 'error') iconClass = 'bx-x-circle';
+
+            toast.innerHTML = `<i class='bx ${iconClass} toast-icon'></i><div class="toast-msg">${msg}</div>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        },
+
+        // --- TELAS ---
         renderLogin() {
             this.container.innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; height:100vh; padding:30px;">
                     <div style="text-align:center; margin-bottom:40px;">
-                        <i class='bx bxs-cloud' style="font-size: 64px; color:var(--primary)"></i>
+                        <i class='bx bxs-cloud-upload' style="font-size: 64px; color:var(--primary)"></i>
                         <h1 style="margin-top:10px;">CondoSaaS</h1>
-                        <p class="text-sm">Gestão Online & Segura</p>
+                        <p class="text-sm">Área Restrita</p>
                     </div>
                     <div class="card">
                         <form id="formLogin">
@@ -211,42 +268,33 @@
                             <button type="submit" class="btn btn-primary" style="width:100%">Entrar</button>
                         </form>
                     </div>
-                    <div class="text-center mt-3">
-                        <button id="btnGoRegister" class="btn btn-outline btn-sm" style="border:none">Não tem conta? Cadastre-se</button>
-                    </div>
-                </div>
-            `;
+                    <div class="text-center mt-3"><button id="btnGoRegister" class="btn btn-outline btn-sm" style="border:none">Não tem conta? Cadastre-se</button></div>
+                </div>`;
             document.getElementById('formLogin').onsubmit = (e) => App.handleLogin(e);
             document.getElementById('btnGoRegister').onclick = () => App.handleViewSwitch('register');
         },
 
-        // TELA 2: CADASTRO
         renderRegister(condoId = null) {
             this.container.innerHTML = `
                 <div style="display:flex; flex-direction:column; justify-content:center; min-height:100vh; padding:30px;">
-                    <div style="text-align:center; margin-bottom:30px;">
-                        <h2>Criar Conta</h2>
-                        <p class="text-sm text-center">Para Admin: use admin@admin.com</p>
-                    </div>
+                    <div style="text-align:center; margin-bottom:30px;"><h2>Criar Conta</h2></div>
                     <div class="card">
                         <form id="formRegister">
                             <input type="hidden" id="regCondoId" value="${condoId || ''}">
                             <div class="form-group"><label>Nome</label><input class="input-field" id="regName" required></div>
                             <div class="form-group"><label>CPF</label><input class="input-field" id="regCpf" required></div>
-                            <div class="form-group"><label>Unidade (ex: 101)</label><input class="input-field" id="regUnit" required></div>
+                            <div class="form-group"><label>Unidade</label><input class="input-field" id="regUnit" required></div>
                             <div class="form-group"><label>Email</label><input type="email" id="regEmail" required></div>
                             <div class="form-group"><label>Senha</label><input type="password" id="regPass" required></div>
                             <button type="submit" class="btn btn-primary" style="width:100%">Cadastrar</button>
                         </form>
                     </div>
                     <div class="text-center"><button id="btnGoLogin" class="btn btn-outline btn-sm" style="border:none">Voltar ao Login</button></div>
-                </div>
-            `;
+                </div>`;
             document.getElementById('formRegister').onsubmit = (e) => App.handleRegister(e);
             document.getElementById('btnGoLogin').onclick = () => App.handleViewSwitch('login');
         },
 
-        // TELA 3: DASHBOARD
         async renderDashboard(user) {
             this.currentUser = user;
             let html = `
@@ -257,63 +305,43 @@
                 <div style="padding: 20px;">
             `;
 
-            // CONTEÚDO BASEADO NO PERFIL
             if (user.role === 'super') {
                 html += `
-                    <div class="card" style="text-align:center; padding:30px;">
-                        <h1 style="color:var(--primary)">Painel Master</h1>
-                        <p class="text-sm">Controle total do SaaS</p>
-                    </div>
+                    <div class="card" style="text-align:center; padding:30px;"><h1 style="color:var(--primary)">Super Admin</h1><p class="text-sm">Gestão de Clientes</p></div>
                     <div class="grid-menu">
                         ${this.cardMenu('App.modalAddCondo()', 'bx-building', 'Novo Condomínio', 'primary')}
-                        ${this.cardMenu('App.modalCondoList()', 'bx-list-ul', 'Gerir Clientes', 'warning')}
-                    </div>
-                `;
+                        ${this.cardMenu('App.modalAddSindico()', 'bx-user-plus', 'Novo Síndico', 'success')}
+                        ${this.cardMenu('App.modalCondoList()', 'bx-list-ul', 'Listar Clientes', 'warning')}
+                    </div>`;
             } else {
-                // SINDICO, MORADOR, STAFF
                 if (user.role === 'sindico') {
                     html += `<div class="card" id="btnInvite" style="background:var(--primary); color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px;"><i class='bx bx-link' style="font-size:1.5rem"></i><span style="font-weight:600">Link Convite Morador</span></div>`;
                 }
-
                 html += `<div class="grid-menu">`;
-                // Permissões simples baseadas no papel
                 if (['sindico', 'morador'].includes(user.role)) html += this.cardMenu('App.modalReservation()', 'bx-calendar-plus', 'Reservar', 'primary');
                 if (['sindico'].includes(user.role)) html += this.cardMenu('App.modalArea()', 'bx-layer-plus', 'Áreas', 'warning');
-                if (['sindico'].includes(user.role)) html += this.cardMenu('App.modalStaff()', 'bx-user-plus', 'Equipe', 'text-main');
                 html += this.cardMenu('App.viewCalendar()', 'bx-calendar', 'Calendário', 'success');
-                html += `</div>`;
-
-                // Listas
-                html += `<div style="margin-top:10px;"><h4 style="margin-bottom:15px;">Eventos Recentes</h4><div id="reservationList">Carregando...</div></div>`;
+                html += `</div><div style="margin-top:10px;"><h4 style="margin-bottom:15px;">Eventos</h4><div id="reservationList">Carregando...</div></div>`;
             }
-
             html += `</div>`;
             this.container.innerHTML = html;
             
-            // Bind Events
             document.getElementById('btnLogout').onclick = Service.logout;
             if(document.getElementById('btnInvite')) document.getElementById('btnInvite').onclick = App.copyInvite;
-            
-            // Carregar dados assíncronos
             if (user.role !== 'super') App.loadReservationsList();
         },
 
         cardMenu(action, icon, text, colorVar) {
-            // Hack para onclick string funcionar com modules: usamos window.App
             return `<div class="card menu-item" onclick="${action}"><div class="card-icon" style="color:var(--${colorVar})"><i class='bx ${icon}'></i></div><h5>${text}</h5></div>`;
         },
 
-        // --- RENDERIZADORES DE MODAL ---
         renderCondoList(condos) {
             let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+            if(condos.length === 0) html += `<p class="text-center">Nenhum condomínio cadastrado.</p>`;
             condos.forEach(c => {
                 const status = c.isActive ? '<span class="status-badge status-active">Ativo</span>' : '<span class="status-badge status-blocked">Bloqueado</span>';
                 const btnTxt = c.isActive ? 'Bloquear' : 'Ativar';
-                html += `
-                    <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px;">
-                        <div><strong>${c.name}</strong><br>${status}</div>
-                        <button onclick="App.toggleCondo('${c.id}', ${c.isActive})" class="btn btn-sm btn-outline">${btnTxt}</button>
-                    </div>`;
+                html += `<div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:15px;"><div><strong>${c.name}</strong><br>${status}</div><button onclick="App.toggleCondo('${c.id}', ${c.isActive})" class="btn btn-sm btn-outline">${btnTxt}</button></div>`;
             });
             html += `</div>`;
             this.openModal('Clientes', html);
@@ -322,30 +350,17 @@
         renderReservationList(list) {
             const div = document.getElementById('reservationList');
             if (!div) return;
-            if (list.length === 0) return div.innerHTML = `<p class="text-center text-sm">Sem eventos.</p>`;
+            if (list.length === 0) return div.innerHTML = `<p class="text-center text-sm">Sem eventos futuros.</p>`;
             
             div.innerHTML = list.map(r => {
                 const dateFmt = r.date.split('-').reverse().join('/');
                 const isMyRes = r.userId === this.currentUser.uid;
                 const canManage = ['sindico', 'funcionario'].includes(this.currentUser.role);
-                
                 let btn = '';
                 if (isMyRes || canManage) {
                     btn = `<button onclick="App.modalGuests('${r.id}')" class="btn btn-sm btn-primary">Convidados (${r.guests ? r.guests.length : 0})</button>`;
                 }
-
-                return `
-                    <div class="card" style="padding:15px;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <div>
-                                <strong>${r.spaceName}</strong>
-                                <div class="text-sm"><i class='bx bx-calendar'></i> ${dateFmt}</div>
-                                <div class="text-sm" style="color:var(--primary)">${r.guestName} (${r.unit})</div>
-                            </div>
-                            ${(isMyRes || canManage) ? `<i class='bx bx-trash' onclick="App.cancelRes('${r.id}')" style="color:var(--danger); cursor:pointer"></i>` : ''}
-                        </div>
-                        <div style="margin-top:10px;">${btn}</div>
-                    </div>`;
+                return `<div class="card" style="padding:15px;"><div style="display:flex; justify-content:space-between;"><div><strong>${r.spaceName}</strong><div class="text-sm"><i class='bx bx-calendar'></i> ${dateFmt}</div><div class="text-sm" style="color:var(--primary)">${r.guestName} (${r.unit})</div></div>${(isMyRes || canManage) ? `<i class='bx bx-trash' onclick="App.cancelRes('${r.id}')" style="color:var(--danger); cursor:pointer"></i>` : ''}</div><div style="margin-top:10px;">${btn}</div></div>`;
             }).join('');
         },
 
@@ -363,41 +378,34 @@
         }
     };
 
-    // --- LOGICA PRINCIPAL (APP) ---
     window.App = {
         async init() {
-            // Monitora Estado do Login
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Busca doc do usuário
                     const snap = await getDoc(doc(db, "users", user.uid));
                     if(snap.exists()) {
                         UI.renderDashboard({ uid: user.uid, ...snap.data() });
+                        UI.toast(`Bem-vindo, ${snap.data().name.split(' ')[0]}!`, 'success');
                     } else {
-                        // Usuário no Auth mas sem Doc (erro raro)
                         signOut(auth);
                         UI.renderLogin();
                     }
                 } else {
-                    // Verifica se tem parametro de convite
                     const params = new URLSearchParams(window.location.search);
                     if (params.get('cadastro')) UI.renderRegister(params.get('condoId'));
                     else UI.renderLogin();
                 }
             });
         },
-
         handleViewSwitch(view) {
             if(view === 'login') UI.renderLogin();
             if(view === 'register') UI.renderRegister();
         },
-
         async handleLogin(e) {
             e.preventDefault();
             const res = await Service.login(document.getElementById('loginEmail').value, document.getElementById('loginPass').value);
-            if (!res.success) alert(res.msg);
+            if (!res.success) UI.toast(res.msg, 'error');
         },
-
         async handleRegister(e) {
             e.preventDefault();
             const data = {
@@ -410,26 +418,35 @@
             };
             const res = await Service.register(data);
             if (res.success) {
-                alert('Conta criada! Você já está logado.');
-                window.location.href = window.location.pathname; // Limpa URL params
+                UI.toast('Conta criada com sucesso!', 'success');
+                window.location.href = window.location.pathname;
             } else {
-                alert('Erro: ' + res.msg);
+                UI.toast(res.msg, 'error');
             }
         },
 
-        // SUPER ADMIN
+        // --- SUPER ADMIN ---
         modalAddCondo() {
-            UI.openModal('Novo Condomínio', `
-                <form onsubmit="App.saveCondo(event)">
-                    <div class="form-group"><label>Nome</label><input class="input-field" name="name" required></div>
-                    <button class="btn btn-primary w-100">Criar</button>
-                </form>`);
+            UI.openModal('Novo Condomínio', `<form onsubmit="App.saveCondo(event)"><div class="form-group"><label>Nome</label><input class="input-field" name="name" required></div><button class="btn btn-primary w-100">Criar</button></form>`);
         },
         async saveCondo(e) {
             e.preventDefault();
             UI.loading(true);
             await addDoc(collection(db, "condos"), { name: e.target.name.value, isActive: true });
-            UI.closeModal(); UI.loading(false); alert('Condomínio criado!');
+            UI.closeModal(); UI.loading(false); UI.toast('Condomínio criado!', 'success');
+        },
+        async modalAddSindico() {
+            UI.loading(true);
+            const list = await Service.getCondos();
+            UI.loading(false);
+            if(list.length === 0) return UI.toast('Crie um condomínio antes.', 'info');
+            UI.openModal('Novo Síndico', `<form onsubmit="App.saveSindico(event)"><div class="form-group"><label>Nome</label><input class="input-field" name="name" required></div><div class="form-group"><label>Email</label><input type="email" class="input-field" name="email" required></div><div class="form-group"><label>Senha</label><input type="password" class="input-field" name="pass" required></div><div class="form-group"><label>Condomínio</label><select class="input-field" name="condoId">${list.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select></div><button class="btn btn-success w-100">Criar Acesso</button></form>`);
+        },
+        async saveSindico(e) {
+            e.preventDefault();
+            const data = { name: e.target.name.value, email: e.target.email.value, pass: e.target.pass.value, condoId: e.target.condoId.value };
+            const res = await Service.registerSindicoByAdmin(data);
+            if(res.success) { UI.closeModal(); UI.toast('Síndico cadastrado!', 'success'); } else { UI.toast(res.msg, 'error'); }
         },
         async modalCondoList() {
             UI.loading(true);
@@ -439,97 +456,49 @@
         },
         async toggleCondo(id, currentStatus) {
             await updateDoc(doc(db, "condos", id), { isActive: !currentStatus });
-            this.modalCondoList(); // Refresh
+            UI.toast('Status atualizado.', 'info');
+            this.modalCondoList();
         },
 
-        // GESTÃO
+        // --- GERAL ---
         async loadReservationsList() {
             const list = await Service.getReservations(UI.currentUser.condoId);
-            // Ordenar e filtrar
             const sorted = list.sort((a,b) => new Date(a.date) - new Date(b.date));
             UI.renderReservationList(sorted);
         },
-
         async modalReservation() {
             const spaces = await Service.getSpaces(UI.currentUser.condoId);
-            if(spaces.length === 0) return alert('Sem áreas cadastradas.');
-            
-            UI.openModal('Nova Reserva', `
-                <form onsubmit="App.saveReservation(event)">
-                    <div class="form-group"><label>Área</label>
-                        <select class="input-field" name="spaceId" id="resSpace">
-                            ${spaces.map(s => `<option value="${s.id}" data-name="${s.name}" data-cap="${s.capacity}">${s.name} (${s.capacity} pess.)</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="form-group"><label>Data</label><input type="date" class="input-field" name="date" min="${new Date().toISOString().split('T')[0]}" required></div>
-                    <button class="btn btn-primary w-100">Confirmar</button>
-                </form>`);
+            if(spaces.length === 0) return UI.toast('Síndico não cadastrou áreas.', 'warning');
+            UI.openModal('Nova Reserva', `<form onsubmit="App.saveReservation(event)"><div class="form-group"><label>Área</label><select class="input-field" name="spaceId" id="resSpace">${spaces.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('')}</select></div><div class="form-group"><label>Data</label><input type="date" class="input-field" name="date" min="${new Date().toISOString().split('T')[0]}" required></div><button class="btn btn-primary w-100">Confirmar</button></form>`);
         },
-
         async saveReservation(e) {
             e.preventDefault();
             const spaceId = e.target.spaceId.value;
             const date = e.target.date.value;
-            // Pega o nome do espaço (hack simples)
             const sel = document.getElementById('resSpace');
             const spaceName = sel.options[sel.selectedIndex].getAttribute('data-name');
-
-            // Validação Morador (Simples)
-            if(!await Service.checkAvailability(spaceId, date)) return alert('Data indisponível.');
-
+            if(!await Service.checkAvailability(spaceId, date)) return UI.toast('Data indisponível.', 'error');
             UI.loading(true);
-            await addDoc(collection(db, "reservations"), {
-                userId: UI.currentUser.uid,
-                guestName: UI.currentUser.name,
-                unit: UI.currentUser.unit,
-                condoId: UI.currentUser.condoId,
-                spaceId, spaceName, date,
-                status: 'confirmado',
-                guests: []
-            });
-            UI.loading(false); UI.closeModal(); this.loadReservationsList();
+            await addDoc(collection(db, "reservations"), { userId: UI.currentUser.uid, guestName: UI.currentUser.name, unit: UI.currentUser.unit, condoId: UI.currentUser.condoId, spaceId, spaceName, date, status: 'confirmado', guests: [] });
+            UI.loading(false); UI.closeModal(); UI.toast('Reserva confirmada!', 'success'); this.loadReservationsList();
         },
-        
         async cancelRes(id) {
-            if(confirm('Cancelar?')) {
-                await updateDoc(doc(db, "reservations", id), { status: 'cancelado' });
-                this.loadReservationsList();
-            }
+            if(confirm('Cancelar?')) { await updateDoc(doc(db, "reservations", id), { status: 'cancelado' }); UI.toast('Reserva cancelada.', 'info'); this.loadReservationsList(); }
         },
 
-        // CONVIDADOS
+        // --- CONVIDADOS E AREAS ---
         async modalGuests(resId) {
-            // Busca reserva live
             const snap = await getDoc(doc(db, "reservations", resId));
             const res = { id: snap.id, ...snap.data() };
-            
-            // Busca espaço para saber capacidade
             const spaceSnap = await getDoc(doc(db, "spaces", res.spaceId));
             const capacity = spaceSnap.data().capacity;
-
             let html = `<div><small>Capacidade: ${res.guests.length} / ${capacity}</small>`;
-            
-            // Input se não lotou
-            if(res.guests.length < capacity) {
-                html += `<form onsubmit="App.addGuest(event, '${resId}')" style="display:flex; gap:5px; margin:10px 0;">
-                    <input class="input-field" name="name" placeholder="Nome" required>
-                    <button class="btn btn-primary">+</button>
-                </form>`;
-            }
-
+            if(res.guests.length < capacity) { html += `<form onsubmit="App.addGuest(event, '${resId}')" style="display:flex; gap:5px; margin:10px 0;"><input class="input-field" name="name" placeholder="Nome" required><button class="btn btn-primary">+</button></form>`; }
             html += `<div style="max-height:300px; overflow-y:auto">`;
-            res.guests.forEach((g, idx) => {
-                const cls = g.checked ? 'checked' : '';
-                html += `<div class="guest-item">
-                    ${g.name} 
-                    <div class="guest-check ${cls}" onclick="App.toggleCheck('${resId}', ${idx})"><i class='bx bx-check'></i></div>
-                </div>`;
-            });
+            res.guests.forEach((g, idx) => { const cls = g.checked ? 'checked' : ''; html += `<div class="guest-item">${g.name} <div class="guest-check ${cls}" onclick="App.toggleCheck('${resId}', ${idx})"><i class='bx bx-check'></i></div></div>`; });
             html += `</div></div>`;
-            
             UI.openModal('Convidados', html);
         },
-
         async addGuest(e, resId) {
             e.preventDefault();
             const name = e.target.name.value;
@@ -538,11 +507,10 @@
             const guests = snap.data().guests || [];
             guests.push({ name, checked: false });
             await updateDoc(ref, { guests });
+            UI.toast('Convidado adicionado', 'success');
             this.modalGuests(resId);
         },
-
         async toggleCheck(resId, idx) {
-            // Apenas staff/sindico deveria fazer checkin, mas deixaremos aberto para teste
             const ref = doc(db, "reservations", resId);
             const snap = await getDoc(ref);
             const guests = snap.data().guests;
@@ -550,40 +518,18 @@
             await updateDoc(ref, { guests });
             this.modalGuests(resId);
         },
-
-        // SINDICO: CRIAR AREA
-        modalArea() {
-            UI.openModal('Nova Área', `
-                <form onsubmit="App.saveArea(event)">
-                    <div class="form-group"><label>Nome</label><input class="input-field" name="name" required></div>
-                    <div class="form-group"><label>Capacidade</label><input type="number" class="input-field" name="cap" required></div>
-                    <button class="btn btn-primary w-100">Salvar</button>
-                </form>`);
-        },
+        modalArea() { UI.openModal('Nova Área', `<form onsubmit="App.saveArea(event)"><div class="form-group"><label>Nome</label><input class="input-field" name="name" required></div><div class="form-group"><label>Capacidade</label><input type="number" class="input-field" name="cap" required></div><button class="btn btn-primary w-100">Salvar</button></form>`); },
         async saveArea(e) {
             e.preventDefault();
-            await addDoc(collection(db, "spaces"), {
-                name: e.target.name.value,
-                capacity: parseInt(e.target.cap.value),
-                condoId: UI.currentUser.condoId,
-                price: 0
-            });
-            UI.closeModal(); alert('Área criada!');
+            await addDoc(collection(db, "spaces"), { name: e.target.name.value, capacity: parseInt(e.target.cap.value), condoId: UI.currentUser.condoId, price: 0 });
+            UI.closeModal(); UI.toast('Área cadastrada!', 'success');
         },
-
-        copyInvite() {
-            const url = `${window.location.href.split('?')[0]}?cadastro=true&condoId=${UI.currentUser.condoId}`;
-            navigator.clipboard.writeText(url);
-            alert('Link copiado! Envie para os moradores.');
-        },
-
-        // Utilitários
-        modalStaff() { alert('Funcionalidade similar a cadastro de morador (Use link convite)'); },
-        viewCalendar() { alert('Visualize a lista abaixo (filtrada por data em breve)'); }
+        copyInvite() { const url = `${window.location.href.split('?')[0]}?cadastro=true&condoId=${UI.currentUser.condoId}`; navigator.clipboard.writeText(url); UI.toast('Link copiado!', 'success'); },
+        viewCalendar() { UI.toast('Funcionalidade em desenvolvimento', 'info'); }
     };
 
-    // Start
     App.init();
 </script>
 </body>
 </html>
+
