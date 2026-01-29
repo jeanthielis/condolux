@@ -1,3446 +1,547 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="description" content="CondoSaaS - Sistema de gestão para condomínios">
-    <meta name="theme-color" content="#6C63FF">
-    <title>CondoSaaS - Sistema de Gestão Condominial</title>
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CondoSaas - Sistema de Reservas</title>
     
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
-        /* --- DESIGN SYSTEM --- */
-        :root {
-            --primary: #6C63FF; --primary-dark: #554fd8; --bg-app: #F5F7FA; --surface: #ffffff;
-            --text-main: #2D3748; --text-light: #718096; --text-lighter: #A0AEC0;
-            --success: #48BB78; --warning: #ED8936; --danger: #F56565; --info: #4299E1;
-            --border: #E2E8F0; --border-light: #EDF2F7;
-            --radius: 16px; --radius-sm: 8px; --shadow: 0 4px 20px rgba(0,0,0,0.06);
-            --shadow-lg: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        
-        * { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI', sans-serif; 
-        }
-        
-        body { 
-            background-color: var(--bg-app); 
-            color: var(--text-main); 
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        
-        .app-container { 
-            max-width: 500px; 
-            margin: 0 auto; 
-            background: var(--bg-app); 
-            min-height: 100vh; 
-            padding-bottom: 80px; 
-        }
-        
-        /* Cards & Containers */
-        .card { 
-            background: var(--surface); 
-            border-radius: var(--radius); 
-            padding: 24px; 
-            margin-bottom: 16px; 
-            box-shadow: var(--shadow);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .card:active {
-            transform: scale(0.995);
-        }
-        
-        /* Botões */
-        .btn { 
-            border: none; 
-            padding: 16px; 
-            border-radius: var(--radius); 
-            font-weight: 600; 
-            cursor: pointer; 
-            width: 100%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            gap: 8px; 
-            transition: all 0.2s; 
-            font-size: 1rem;
-            position: relative;
-        }
-        
-        .btn-primary { 
-            background: var(--primary); 
-            color: white; 
-        }
-        
-        .btn-primary:hover:not(:disabled) { 
-            background: var(--primary-dark); 
-            transform: translateY(-1px);
-        }
-        
-        .btn-primary:active:not(:disabled) { 
-            transform: translateY(0);
-        }
-        
-        .btn-outline { 
-            background: transparent; 
-            border: 2px solid var(--border); 
-            color: var(--text-light); 
-        }
-        
-        .btn-outline:hover:not(:disabled) { 
-            border-color: var(--primary); 
-            color: var(--primary);
-        }
-        
-        .btn-sm { 
-            padding: 10px 16px; 
-            font-size: 0.9rem; 
-            width: auto; 
-        }
-        
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-        
-        .btn:disabled { 
-            opacity: 0.6; 
-            cursor: not-allowed; 
-        }
-        
-        .btn-loading { 
-            color: transparent; 
-        }
-        
-        .btn-loading::after {
-            content: '';
-            position: absolute;
-            width: 20px; 
-            height: 20px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s linear infinite;
-        }
-        
-        .btn-outline.btn-loading::after {
-            border: 2px solid rgba(108, 99, 255, 0.3);
-            border-top-color: var(--primary);
-        }
-        
-        /* Inputs & Selects */
-        .input-field, .select-field { 
-            width: 100%; 
-            padding: 14px 16px; 
-            border: 2px solid var(--border-light); 
-            border-radius: var(--radius); 
-            outline: none; 
-            background: #F8FAFC; 
-            margin-bottom: 16px; 
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-        
-        .select-field {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            background-size: 16px;
-        }
-        
-        .input-field:focus, .select-field:focus { 
-            border-color: var(--primary); 
-            background: white; 
-            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
-        }
-        
-        .input-field.error, .select-field.error { 
-            border-color: var(--danger); 
-        }
-        
-        .input-field.success, .select-field.success { 
-            border-color: var(--success); 
-        }
-        
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            color: var(--text-main);
-        }
-        
-        .input-hint {
-            font-size: 0.8rem;
-            color: var(--text-lighter);
-            margin-top: -12px;
-            margin-bottom: 16px;
-        }
-        
-        .input-error {
-            color: var(--danger);
-            font-size: 0.8rem;
-            margin-top: -12px;
-            margin-bottom: 16px;
-            display: none;
-        }
-        
-        .input-error.show {
-            display: block;
-        }
-        
-        /* Toast & Loader */
-        #toast-container { 
-            position: fixed; 
-            top: 20px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            z-index: 3000; 
-            width: 90%; 
-            max-width: 400px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-        
-        .toast { 
-            background: white; 
-            padding: 16px; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-            border-left: 5px solid #ccc; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            animation: slideIn 0.3s ease;
-        }
-        
-        .toast.success { border-left-color: var(--success); } 
-        .toast.error { border-left-color: var(--danger); }
-        .toast.warning { border-left-color: var(--warning); }
-        .toast.info { border-left-color: var(--info); }
-        
-        @keyframes slideIn { 
-            from { transform: translateY(-20px); opacity: 0; } 
-            to { transform: translateY(0); opacity: 1; } 
-        }
-        
-        /* Loading */
-        #loading { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(255,255,255,0.9); 
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: center; 
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .spinner { 
-            width: 50px; 
-            height: 50px; 
-            border: 4px solid #f3f3f3; 
-            border-top: 4px solid var(--primary); 
-            border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-        }
-        
-        .loading-text {
-            color: var(--text-light);
-            font-weight: 500;
-        }
-        
-        @keyframes spin { 
-            0% { transform: rotate(0deg); } 
-            100% { transform: rotate(360deg); } 
-        }
-        
-        /* Modal */
-        #mainModal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.5); 
-            z-index: 1000; 
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            animation: fadeIn 0.2s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .modal-content {
-            background: white; 
-            width: 100%; 
-            max-width: 500px; 
-            border-radius: var(--radius); 
-            padding: 30px; 
-            max-height: 90vh; 
-            overflow-y: auto; 
-            box-shadow: var(--shadow-lg);
-            animation: modalSlideIn 0.3s ease;
-        }
-        
-        @keyframes modalSlideIn {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        
-        .modal-header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-light);
-        }
-        
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-        
-        .modal-close {
-            background: none; 
-            border: none; 
-            font-size: 1.8rem; 
-            color: var(--text-light);
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-        }
-        
-        .modal-close:hover {
-            background: var(--bg-app);
-        }
-        
-        /* Utils */
-        .header { 
-            background: var(--surface); 
-            padding: 20px; 
-            border-radius: 0 0 24px 24px; 
-            box-shadow: var(--shadow); 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-        }
-        
-        .grid-menu { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 16px; 
-        }
-        
-        .menu-item { 
-            text-align: center; 
-            cursor: pointer; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 120px; 
-            border-radius: var(--radius); 
-            background: white; 
-            box-shadow: var(--shadow);
-            transition: all 0.2s;
-            padding: 20px;
-        }
-        
-        .menu-item:hover { 
-            transform: translateY(-2px); 
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .menu-item:active { 
-            transform: scale(0.98); 
-        }
-        
-        .menu-icon {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-        
-        .badge-role { 
-            font-size: 0.7rem; 
-            background: #EBF4FF; 
-            padding: 4px 12px; 
-            border-radius: 20px; 
-            font-weight: 800; 
-            color: var(--primary); 
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .badge-status {
-            font-size: 0.7rem;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        
-        .status-pending {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-        
-        .status-confirmed {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-        
-        .status-cancelled {
-            background: #FEE2E2;
-            color: #991B1B;
-        }
-        
-        /* Skeleton Loading */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-            border-radius: var(--radius);
-        }
-        
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-        
-        .skeleton-card {
-            height: 100px;
-            margin-bottom: 16px;
-        }
-        
-        /* Status Indicators */
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-        
-        .status-online { background: var(--success); }
-        .status-offline { background: var(--danger); }
-        
-        /* Reservation Card */
-        .reservation-card {
-            border-left: 4px solid var(--primary);
-        }
-        
-        .reservation-card.pending {
-            border-left-color: var(--warning);
-        }
-        
-        .reservation-card.confirmed {
-            border-left-color: var(--success);
-        }
-        
-        .reservation-card.cancelled {
-            border-left-color: var(--danger);
-        }
-        
-        /* Area Card */
-        .area-card {
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .area-availability {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        
-        .available {
-            background: var(--success);
-            color: white;
-        }
-        
-        .unavailable {
-            background: var(--danger);
-            color: white;
-        }
-        
-        /* Time Slots */
-        .time-slots {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
-        
-        .time-slot {
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        .time-slot:hover:not(.disabled) {
-            border-color: var(--primary);
-            background: rgba(108, 99, 255, 0.1);
-        }
-        
-        .time-slot.selected {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .time-slot.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: var(--border-light);
-        }
-        
-        /* Steps */
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
-        }
-        
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 15px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--border);
-            z-index: 1;
-        }
-        
-        .step {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-        }
-        
-        .step-number {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--border);
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            margin-bottom: 8px;
-            border: 3px solid white;
-        }
-        
-        .step.active .step-number {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .step.completed .step-number {
-            background: var(--success);
-            color: white;
-        }
-        
-        .step-label {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            text-align: center;
-        }
-        
-        .step.active .step-label {
-            color: var(--primary);
-            font-weight: 600;
-        }
-        
-        .step-content {
-            display: none;
-            animation: fadeInUp 0.3s ease;
-        }
-        
-        .step-content.active {
-            display: block;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 480px) {
-            .app-container { padding: 0 16px; }
-            .grid-menu { grid-template-columns: 1fr; }
-            .modal-content { padding: 20px; }
-            .card { padding: 20px; }
-            .time-slots { justify-content: center; }
-            .steps { margin-bottom: 20px; }
-            .step-label { font-size: 0.7rem; }
-        }
-        
-        /* Offline Warning */
-        #offline-warning {
-            display: none;
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--warning);
-            color: white;
-            padding: 12px 24px;
-            border-radius: var(--radius);
-            z-index: 4000;
-            box-shadow: var(--shadow);
-            animation: slideInUp 0.3s ease;
-        }
-        
-        @keyframes slideInUp {
-            from { transform: translate(-50%, 20px); opacity: 0; }
-            to { transform: translate(-50%, 0); opacity: 1; }
-        }
-        
-        /* Tabs */
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-        
-        .tab {
-            padding: 12px 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: var(--text-light);
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            color: var(--text-lighter);
-            margin-bottom: 16px;
-        }
-        
-        .empty-state p {
-            color: var(--text-light);
-        }
-        
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        .action-buttons .btn {
-            flex: 1;
-        }
-        
-        /* Landing Page */
-        .hero-section {
-            text-align: center;
-            padding: 40px 20px;
-        }
-        
-        .hero-icon {
-            font-size: 4rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-        
-        .hero-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-        
-        .hero-subtitle {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            margin-bottom: 40px;
-            line-height: 1.6;
-        }
-        
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-            margin: 30px 0;
-        }
-        
-        .feature-item {
-            text-align: center;
-            padding: 20px;
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--primary);
-            margin-bottom: 12px;
-        }
-        
-        .feature-text {
-            font-size: 0.9rem;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-        
-        .cta-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 30px;
-        }
-        
-        .testimonial {
-            background: white;
-            border-radius: var(--radius);
-            padding: 24px;
-            margin: 30px 0;
-            box-shadow: var(--shadow);
-            border-left: 4px solid var(--primary);
-        }
-        
-        .testimonial-text {
-            font-style: italic;
-            color: var(--text-main);
-            margin-bottom: 16px;
-        }
-        
-        .testimonial-author {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .testimonial-role {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-        
-        /* Pricing */
-        .pricing-card {
-            background: white;
-            border-radius: var(--radius);
-            padding: 30px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            border: 2px solid var(--border);
-            transition: all 0.3s;
-        }
-        
-        .pricing-card.featured {
-            border-color: var(--primary);
-            transform: scale(1.05);
-            box-shadow: var(--shadow-lg);
-        }
-        
-        .pricing-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 20px;
-        }
-        
-        .pricing-price {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 20px;
-        }
-        
-        .pricing-period {
-            font-size: 1rem;
-            color: var(--text-light);
-        }
-        
-        .pricing-features {
-            text-align: left;
-            margin: 30px 0;
-        }
-        
-        .pricing-feature {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            color: var(--text-main);
-        }
-        
-        .pricing-feature i {
-            color: var(--success);
-        }
+        :root { --primary: #2E7D32; --bg: #f5f5f5; --white: #fff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+        body { background-color: var(--bg); color: #333; padding-bottom: 80px; }
+        
+        /* Layout */
+        .app-bar { background: var(--primary); color: white; padding: 16px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .app-title { font-size: 1.2rem; font-weight: 500; margin-left: 12px; flex: 1; }
+        .container { max-width: 1000px; margin: 16px auto; padding: 0 16px; }
+        
+        /* Cards & Buttons */
+        .card { background: var(--white); border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-text { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.85rem; }
+
+        /* Calendário Customizado */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .week-day { text-align: center; font-size: 0.8rem; color: #666; padding: 8px 0; }
+        .day-cell { 
+            aspect-ratio: 1; background: #fff; border: 1px solid #eee; border-radius: 4px; 
+            display: flex; flex-direction: column; justify-content: flex-start; padding: 4px; cursor: pointer; position: relative;
+        }
+        .day-cell:hover { background: #f0f0f0; }
+        .day-cell.empty { background: transparent; border: none; cursor: default; }
+        .day-number { font-size: 0.9rem; font-weight: bold; }
+        .day-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); margin: 2px; }
+        .dots-container { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 4px; }
+        .day-cell.today { border: 2px solid var(--primary); }
+
+        /* Toasts (Notificações) */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #333; color: white; padding: 12px 20px; border-radius: 4px; animation: slideIn 0.3s; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .toast.success { border-left: 4px solid #4CAF50; }
+        .toast.error { border-left: 4px solid #F44336; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* Utilitários */
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; text-transform: uppercase; font-weight: bold; }
+        .badge.pending { background: #E3F2FD; color: #1976D2; }
+        .badge.approved { background: #E8F5E9; color: #2E7D32; }
+        .badge.rejected { background: #FFEBEE; color: #C62828; }
+        .form-group { margin-bottom: 12px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; padding: 24px; border-radius: 8px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+        
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; height: 60px; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; z-index: 90; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #999; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
+        .nav-item i { font-size: 24px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
-<!-- Loading Overlay -->
-<div id="loading">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loadingText">Carregando...</div>
-</div>
+    <div id="app">
+        <div class="toast-container">
+            <div v-for="(t, i) in toasts" :key="i" class="toast" :class="t.type">
+                <i class="material-icons">{{ t.type === 'success' ? 'check_circle' : 'error' }}</i>
+                {{ t.message }}
+            </div>
+        </div>
 
-<!-- Toast Container -->
-<div id="toast-container"></div>
-
-<!-- Offline Warning -->
-<div id="offline-warning">
-    <i class='bx bx-wifi-off'></i> Você está offline
-</div>
-
-<!-- Main App Container -->
-<div class="app-container" id="app"></div>
-
-<!-- Modal -->
-<div id="mainModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title" id="modalTitle">Título</h3>
-            <button class="modal-close" onclick="UI.hideModal()">
-                <i class='bx bx-x'></i>
+        <div class="app-bar">
+            <i class="material-icons">apartment</i>
+            <span class="app-title">CondoSaas</span>
+            <button class="btn btn-text" @click="toggleUser">
+                <i class="material-icons" style="font-size: 18px; margin-right: 4px;">{{ currentUser.type === 'syndic' ? 'admin_panel_settings' : 'person' }}</i>
+                {{ currentUser.type === 'syndic' ? 'Síndico' : 'Morador' }}
             </button>
         </div>
-        <div id="modalBody"></div>
-    </div>
-</div>
 
-<script type="module">
-    // ============================================
-    // FIREBASE CONFIGURATION
-    // ============================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
-        authDomain: "condosaas-app.firebaseapp.com",
-        projectId: "condosaas-app"
-    };
-
-    // ============================================
-    // IMPORTS FIREBASE
-    // ============================================
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { 
-        getFirestore, collection, addDoc, getDocs, doc, 
-        updateDoc, query, where, setDoc, getDoc, Timestamp,
-        deleteDoc, orderBy
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { 
-        getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, 
-        signOut, onAuthStateChanged, updateProfile, sendEmailVerification
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // ============================================
-    // VALIDATORS
-    // ============================================
-    const Validators = {
-        cpf(value) {
-            const clean = String(value).replace(/\D/g, '');
-            if (clean.length !== 11) return false;
-            if (/^(\d)\1{10}$/.test(clean)) return false;
+        <div class="container">
             
-            let sum = 0, remainder;
-            for (let i = 1; i <= 9; i++) sum += parseInt(clean.substring(i-1, i)) * (11 - i);
-            remainder = (sum * 10) % 11;
-            if (remainder === 10 || remainder === 11) remainder = 0;
-            if (remainder !== parseInt(clean.substring(9, 10))) return false;
-            
-            sum = 0;
-            for (let i = 1; i <= 10; i++) sum += parseInt(clean.substring(i-1, i)) * (12 - i);
-            remainder = (sum * 10) % 11;
-            if (remainder === 10 || remainder === 11) remainder = 0;
-            if (remainder !== parseInt(clean.substring(10, 11))) return false;
-            
-            return true;
-        },
-
-        email(value) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-        },
-
-        password(value) {
-            if (value.length < 6) return { valid: false, message: "Mínimo 6 caracteres" };
-            if (!/[A-Z]/.test(value)) return { valid: false, message: "Pelo menos uma letra maiúscula" };
-            if (!/\d/.test(value)) return { valid: false, message: "Pelo menos um número" };
-            return { valid: true, message: "Senha forte" };
-        },
-
-        name(value) {
-            if (value.length < 3) return false;
-            if (!/^[a-zA-ZÀ-ÿ\s]{3,}$/.test(value)) return false;
-            return true;
-        },
-
-        phone(value) {
-            const clean = String(value).replace(/\D/g, '');
-            return clean.length >= 10 && clean.length <= 11;
-        },
-
-        cnpj(value) {
-            const clean = String(value).replace(/\D/g, '');
-            if (clean.length !== 14) return false;
-            
-            // Validação simplificada de CNPJ
-            let size = clean.length - 2;
-            let numbers = clean.substring(0, size);
-            let digits = clean.substring(size);
-            let sum = 0;
-            let pos = size - 7;
-            
-            for (let i = size; i >= 1; i--) {
-                sum += numbers.charAt(size - i) * pos--;
-                if (pos < 2) pos = 9;
-            }
-            
-            let result = sum % 11 < 2 ? 0 : 11 - sum % 11;
-            if (result != digits.charAt(0)) return false;
-            
-            size = size + 1;
-            numbers = clean.substring(0, size);
-            sum = 0;
-            pos = size - 7;
-            
-            for (let i = size; i >= 1; i--) {
-                sum += numbers.charAt(size - i) * pos--;
-                if (pos < 2) pos = 9;
-            }
-            
-            result = sum % 11 < 2 ? 0 : 11 - sum % 11;
-            if (result != digits.charAt(1)) return false;
-            
-            return true;
-        },
-
-        sanitize(input) {
-            if (typeof input !== 'string') return input;
-            return input
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#x27;')
-                .replace(/\//g, '&#x2F;');
-        },
-
-        formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('pt-BR', {
-                weekday: 'short',
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            });
-        },
-
-        formatTime(timeStr) {
-            return timeStr.substring(0, 5);
-        },
-
-        formatPhone(phone) {
-            const clean = phone.replace(/\D/g, '');
-            if (clean.length === 11) {
-                return `(${clean.substring(0, 2)}) ${clean.substring(2, 7)}-${clean.substring(7)}`;
-            }
-            return `(${clean.substring(0, 2)}) ${clean.substring(2, 6)}-${clean.substring(6)}`;
-        }
-    };
-
-    // ============================================
-    // APP STATE MANAGEMENT
-    // ============================================
-    const AppState = {
-        currentUser: null,
-        condoData: null,
-        reservations: [],
-        commonAreas: [],
-        myReservations: [],
-        isLoading: false,
-        isOnline: navigator.onLine,
-        currentModal: null,
-        selectedDate: new Date().toISOString().split('T')[0],
-        registrationStep: 1,
-        registrationData: {}
-    };
-
-    // ============================================
-    // FIREBASE INITIALIZATION
-    // ============================================
-    let app, db, auth;
-
-    try {
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-    } catch (error) {
-        console.error('Erro ao inicializar Firebase:', error);
-        UI.toast('Erro de conexão com o servidor', 'error');
-    }
-
-    // ============================================
-    // UI CONTROLLER
-    // ============================================
-    const UI = {
-        toast(msg, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const t = document.createElement('div');
-            t.className = `toast ${type}`;
-            const icons = {
-                success: 'bx-check-circle',
-                error: 'bx-error',
-                warning: 'bx-error-circle',
-                info: 'bx-info-circle'
-            };
-            t.innerHTML = `
-                <i class='bx ${icons[type] || 'bx-info-circle'}'></i>
-                <span>${Validators.sanitize(msg)}</span>
-            `;
-            container.appendChild(t);
-            setTimeout(() => t.remove(), 4000);
-        },
-
-        loading(show, text = 'Carregando...') {
-            const loadingEl = document.getElementById('loading');
-            const textEl = document.getElementById('loadingText');
-            if (textEl) textEl.textContent = text;
-            loadingEl.style.display = show ? 'flex' : 'none';
-            AppState.isLoading = show;
-        },
-
-        showModal(title, content, onClose = null) {
-            document.getElementById('modalTitle').textContent = Validators.sanitize(title);
-            document.getElementById('modalBody').innerHTML = content;
-            document.getElementById('mainModal').style.display = 'flex';
-            AppState.currentModal = { title, onClose };
-        },
-
-        hideModal() {
-            document.getElementById('mainModal').style.display = 'none';
-            if (AppState.currentModal && AppState.currentModal.onClose) {
-                AppState.currentModal.onClose();
-            }
-            AppState.currentModal = null;
-        },
-
-        showInputError(inputId, message) {
-            const input = document.getElementById(inputId);
-            const errorEl = input.nextElementSibling;
-            
-            if (errorEl && errorEl.classList.contains('input-error')) {
-                input.classList.add('error');
-                errorEl.textContent = message;
-                errorEl.classList.add('show');
-            }
-        },
-
-        clearInputError(inputId) {
-            const input = document.getElementById(inputId);
-            const errorEl = input.nextElementSibling;
-            
-            if (errorEl && errorEl.classList.contains('input-error')) {
-                input.classList.remove('error');
-                errorEl.classList.remove('show');
-            }
-        },
-
-        // Landing Page
-        renderLanding() {
-            document.getElementById('app').innerHTML = `
-                <div class="hero-section">
-                    <i class='bx bxs-buildings hero-icon'></i>
-                    <h1 class="hero-title">CondoSaaS</h1>
-                    <p class="hero-subtitle">
-                        Sistema completo de gestão para condomínios. <br>
-                        Reserve áreas comuns, gerencie comunicados e simplifique a administração.
-                    </p>
-                    
-                    <div class="features-grid">
-                        <div class="feature-item">
-                            <i class='bx bx-calendar-check feature-icon'></i>
-                            <div class="feature-text">Reserva de Áreas</div>
-                        </div>
-                        <div class="feature-item">
-                            <i class='bx bx-user-check feature-icon'></i>
-                            <div class="feature-text">Cadastro de Moradores</div>
-                        </div>
-                        <div class="feature-item">
-                            <i class='bx bx-bell feature-icon'></i>
-                            <div class="feature-text">Comunicados</div>
-                        </div>
-                        <div class="feature-item">
-                            <i class='bx bx-chart feature-icon'></i>
-                            <div class="feature-text">Relatórios</div>
-                        </div>
+            <div v-if="currentView === 'calendar'">
+                <div class="card">
+                    <div class="calendar-header">
+                        <button class="btn btn-outline" @click="changeMonth(-1)"><i class="material-icons">chevron_left</i></button>
+                        <h3 style="text-transform: capitalize;">{{ monthLabel }}</h3>
+                        <button class="btn btn-outline" @click="changeMonth(1)"><i class="material-icons">chevron_right</i></button>
                     </div>
                     
-                    <div class="cta-buttons">
-                        <button class="btn btn-primary" onclick="App.startRegistration()">
-                            <i class='bx bx-rocket'></i> Começar Agora
-                        </button>
-                        <button class="btn btn-outline" onclick="UI.renderLogin()">
-                            <i class='bx bx-log-in'></i> Fazer Login
-                        </button>
-                    </div>
-                    
-                    <div class="testimonial">
-                        <p class="testimonial-text">
-                            "O CondoSaaS revolucionou a gestão do nosso condomínio. Agora as reservas são feitas em minutos e os moradores adoraram!"
-                        </p>
-                        <div class="testimonial-author">Carlos Silva</div>
-                        <div class="testimonial-role">Síndico - Condomínio Solaris</div>
-                    </div>
-                    
-                    <div style="margin-top: 40px;">
-                        <h3 style="color: var(--text-main); margin-bottom: 20px; text-align: center;">Planos Simples e Transparentes</h3>
-                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 400px; margin: 0 auto;">
-                            <div class="pricing-card">
-                                <div class="pricing-title">Básico</div>
-                                <div class="pricing-price">R$ 0<span class="pricing-period">/mês</span></div>
-                                <div class="pricing-features">
-                                    <div class="pricing-feature"><i class='bx bx-check'></i> Até 50 unidades</div>
-                                    <div class="pricing-feature"><i class='bx bx-check'></i> Reservas de áreas</div>
-                                    <div class="pricing-feature"><i class='bx bx-check'></i> Cadastro de moradores</div>
-                                    <div class="pricing-feature"><i class='bx bx-check'></i> Suporte por email</div>
-                                </div>
-                                <button class="btn btn-primary" onclick="App.startRegistration()">Começar Grátis</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-        },
-
-        renderLogin() {
-            document.getElementById('app').innerHTML = `
-                <div style="padding:40px 30px; text-align:center;">
-                    <i class='bx bxs-buildings' style="font-size: 64px; color:var(--primary); margin-bottom: 20px;"></i>
-                    <h1 style="margin:10px 0 40px; font-size: 2rem; color: var(--text-main);">CondoSaaS</h1>
-                    
-                    <div class="card">
-                        <form id="formLogin">
-                            <label for="logEmail">Email</label>
-                            <input type="email" id="logEmail" class="input-field" placeholder="seu@email.com" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="logPass">Senha</label>
-                            <input type="password" id="logPass" class="input-field" placeholder="••••••••" required>
-                            <div class="input-error"></div>
-                            
-                            <button type="submit" class="btn btn-primary" id="loginBtn">Entrar</button>
-                        </form>
-                    </div>
-                    
-                    <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
-                        <button id="btnNewAccount" class="btn btn-outline">
-                            <i class='bx bx-user-plus'></i> Criar Nova Conta
-                        </button>
-                        <button id="btnBackToLanding" class="btn btn-outline">
-                            <i class='bx bx-home'></i> Voltar para Início
-                        </button>
-                    </div>
-                    
-                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
-                        <p style="color: var(--text-light); font-size: 0.9rem;">
-                            É morador? Peça ao seu síndico o link de cadastro.
-                        </p>
-                    </div>
-                </div>`;
-
-            document.getElementById('logEmail').addEventListener('blur', function() {
-                if (this.value && !Validators.email(this.value)) {
-                    UI.showInputError('logEmail', 'Email inválido');
-                } else {
-                    UI.clearInputError('logEmail');
-                }
-            });
-
-            document.getElementById('formLogin').onsubmit = App.login;
-            document.getElementById('btnNewAccount').onclick = () => App.startRegistration();
-            document.getElementById('btnBackToLanding').onclick = () => UI.renderLanding();
-        },
-
-        renderRegistrationStep1() {
-            document.getElementById('app').innerHTML = `
-                <div style="padding:40px 30px;">
-                    <div style="text-align:center; margin-bottom:30px;">
-                        <i class='bx bxs-buildings' style="font-size: 48px; color:var(--primary); margin-bottom: 16px;"></i>
-                        <h2 style="color: var(--text-main);">Criar Conta do Síndico</h2>
-                        <p style="color: var(--text-light); margin-top: 8px;">Preencha seus dados pessoais</p>
-                    </div>
-                    
-                    <div class="steps">
-                        <div class="step active">
-                            <div class="step-number">1</div>
-                            <div class="step-label">Dados Pessoais</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div class="step-label">Condomínio</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-label">Conta de Acesso</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <form id="formRegStep1">
-                            <label for="regName">Nome Completo *</label>
-                            <input id="regName" class="input-field" placeholder="João da Silva" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="regEmail">Email *</label>
-                            <input type="email" id="regEmail" class="input-field" placeholder="seu@email.com" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="regPhone">Telefone *</label>
-                            <input id="regPhone" class="input-field" placeholder="(11) 99999-9999" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="regCpf">CPF *</label>
-                            <input id="regCpf" class="input-field" placeholder="000.000.000-00" required>
-                            <div class="input-error"></div>
-                            
-                            <div class="action-buttons">
-                                <button type="button" class="btn btn-outline" onclick="UI.renderLanding()">
-                                    <i class='bx bx-arrow-back'></i> Voltar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="nextStep1Btn">
-                                    Próximo <i class='bx bx-chevron-right'></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>`;
-
-            // Add validations
-            document.getElementById('regName').addEventListener('blur', function() {
-                if (this.value && !Validators.name(this.value)) {
-                    UI.showInputError('regName', 'Nome inválido (mínimo 3 letras)');
-                } else {
-                    UI.clearInputError('regName');
-                }
-            });
-
-            document.getElementById('regEmail').addEventListener('blur', function() {
-                if (this.value && !Validators.email(this.value)) {
-                    UI.showInputError('regEmail', 'Email inválido');
-                } else {
-                    UI.clearInputError('regEmail');
-                }
-            });
-
-            document.getElementById('regPhone').addEventListener('blur', function() {
-                if (this.value && !Validators.phone(this.value)) {
-                    UI.showInputError('regPhone', 'Telefone inválido (10 ou 11 dígitos)');
-                } else {
-                    UI.clearInputError('regPhone');
-                }
-            });
-
-            document.getElementById('regCpf').addEventListener('blur', function() {
-                if (this.value && !Validators.cpf(this.value)) {
-                    UI.showInputError('regCpf', 'CPF inválido');
-                } else {
-                    UI.clearInputError('regCpf');
-                }
-            });
-
-            document.getElementById('formRegStep1').onsubmit = (e) => {
-                e.preventDefault();
-                App.saveRegistrationStep1();
-            };
-        },
-
-        renderRegistrationStep2() {
-            document.getElementById('app').innerHTML = `
-                <div style="padding:40px 30px;">
-                    <div style="text-align:center; margin-bottom:30px;">
-                        <i class='bx bxs-buildings' style="font-size: 48px; color:var(--primary); margin-bottom: 16px;"></i>
-                        <h2 style="color: var(--text-main);">Informações do Condomínio</h2>
-                        <p style="color: var(--text-light); margin-top: 8px;">Dados do seu condomínio</p>
-                    </div>
-                    
-                    <div class="steps">
-                        <div class="step completed">
-                            <div class="step-number"><i class='bx bx-check'></i></div>
-                            <div class="step-label">Dados Pessoais</div>
-                        </div>
-                        <div class="step active">
-                            <div class="step-number">2</div>
-                            <div class="step-label">Condomínio</div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div class="step-label">Conta de Acesso</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <form id="formRegStep2">
-                            <label for="condoName">Nome do Condomínio *</label>
-                            <input id="condoName" class="input-field" placeholder="Condomínio Jardim Primavera" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="condoAddress">Endereço Completo *</label>
-                            <input id="condoAddress" class="input-field" placeholder="Rua Exemplo, 123 - Bairro, Cidade/UF" required>
-                            <div class="input-error"></div>
-                            
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                <div>
-                                    <label for="condoUnits">Número de Unidades *</label>
-                                    <input type="number" id="condoUnits" class="input-field" placeholder="100" min="1" required>
-                                    <div class="input-error"></div>
-                                </div>
-                                <div>
-                                    <label for="condoBlocks">Número de Blocos</label>
-                                    <input type="number" id="condoBlocks" class="input-field" placeholder="1" min="1">
-                                </div>
-                            </div>
-                            
-                            <label for="condoType">Tipo de Condomínio *</label>
-                            <select class="select-field" id="condoType" required>
-                                <option value="">Selecione</option>
-                                <option value="residencial">Residencial</option>
-                                <option value="comercial">Comercial</option>
-                                <option value="misto">Misto</option>
-                            </select>
-                            <div class="input-error"></div>
-                            
-                            <div class="action-buttons">
-                                <button type="button" class="btn btn-outline" onclick="App.goToRegistrationStep(1)">
-                                    <i class='bx bx-chevron-left'></i> Voltar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="nextStep2Btn">
-                                    Próximo <i class='bx bx-chevron-right'></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>`;
-
-            document.getElementById('formRegStep2').onsubmit = (e) => {
-                e.preventDefault();
-                App.saveRegistrationStep2();
-            };
-        },
-
-        renderRegistrationStep3() {
-            document.getElementById('app').innerHTML = `
-                <div style="padding:40px 30px;">
-                    <div style="text-align:center; margin-bottom:30px;">
-                        <i class='bx bxs-buildings' style="font-size: 48px; color:var(--primary); margin-bottom: 16px;"></i>
-                        <h2 style="color: var(--text-main);">Criar Conta de Acesso</h2>
-                        <p style="color: var(--text-light); margin-top: 8px;">Defina seu email e senha</p>
-                    </div>
-                    
-                    <div class="steps">
-                        <div class="step completed">
-                            <div class="step-number"><i class='bx bx-check'></i></div>
-                            <div class="step-label">Dados Pessoais</div>
-                        </div>
-                        <div class="step completed">
-                            <div class="step-number"><i class='bx bx-check'></i></div>
-                            <div class="step-label">Condomínio</div>
-                        </div>
-                        <div class="step active">
-                            <div class="step-number">3</div>
-                            <div class="step-label">Conta de Acesso</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <form id="formRegStep3">
-                            <div style="margin-bottom: 20px; padding: 16px; background: var(--bg-app); border-radius: var(--radius);">
-                                <p style="color: var(--text-main); margin-bottom: 8px;"><strong>Email para login:</strong></p>
-                                <p style="color: var(--primary); font-weight: 600;">${AppState.registrationData.email}</p>
-                                <small style="color: var(--text-light);">Você usará este email para acessar o sistema</small>
-                            </div>
-                            
-                            <label for="regPassword">Senha *</label>
-                            <input type="password" id="regPassword" class="input-field" placeholder="••••••••" required>
-                            <div class="input-error"></div>
-                            <div class="input-hint">Mínimo 6 caracteres, com letra maiúscula e número</div>
-                            
-                            <label for="regConfirmPassword">Confirmar Senha *</label>
-                            <input type="password" id="regConfirmPassword" class="input-field" placeholder="••••••••" required>
-                            <div class="input-error"></div>
-                            
-                            <div style="margin-top: 24px; padding: 16px; background: #F0F9FF; border-radius: var(--radius); border-left: 4px solid var(--info);">
-                                <p style="color: var(--text-main); font-size: 0.9rem;">
-                                    <i class='bx bx-info-circle' style="color: var(--info);"></i>
-                                    Ao criar sua conta, você concorda com nossos 
-                                    <a href="#" style="color: var(--primary);" onclick="App.showTerms()">Termos de Uso</a> e 
-                                    <a href="#" style="color: var(--primary);" onclick="App.showPrivacy()">Política de Privacidade</a>.
-                                </p>
-                            </div>
-                            
-                            <div class="action-buttons" style="margin-top: 30px;">
-                                <button type="button" class="btn btn-outline" onclick="App.goToRegistrationStep(2)">
-                                    <i class='bx bx-chevron-left'></i> Voltar
-                                </button>
-                                <button type="submit" class="btn btn-primary" id="completeRegBtn">
-                                    <i class='bx bx-check'></i> Criar Conta
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>`;
-
-            // Add password validation
-            document.getElementById('regPassword').addEventListener('input', function() {
-                const result = Validators.password(this.value);
-                if (this.value && !result.valid) {
-                    UI.showInputError('regPassword', result.message);
-                } else {
-                    UI.clearInputError('regPassword');
-                }
-            });
-
-            document.getElementById('regConfirmPassword').addEventListener('blur', function() {
-                const password = document.getElementById('regPassword').value;
-                if (this.value && this.value !== password) {
-                    UI.showInputError('regConfirmPassword', 'As senhas não coincidem');
-                } else {
-                    UI.clearInputError('regConfirmPassword');
-                }
-            });
-
-            document.getElementById('formRegStep3').onsubmit = (e) => {
-                e.preventDefault();
-                App.completeRegistration();
-            };
-        },
-
-        renderRegistrationSuccess() {
-            document.getElementById('app').innerHTML = `
-                <div style="padding:40px 30px; text-align:center;">
-                    <div style="background: var(--success); color: white; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px;">
-                        <i class='bx bx-check' style="font-size: 40px;"></i>
-                    </div>
-                    
-                    <h2 style="color: var(--text-main); margin-bottom: 16px;">Conta Criada com Sucesso!</h2>
-                    
-                    <div class="card" style="text-align: left; margin: 30px 0;">
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="color: var(--text-main); margin-bottom: 12px;">Resumo da sua conta:</h4>
-                            <p style="color: var(--text-light); margin-bottom: 8px;">
-                                <strong>Nome:</strong> ${Validators.sanitize(AppState.registrationData.name)}
-                            </p>
-                            <p style="color: var(--text-light); margin-bottom: 8px;">
-                                <strong>Condomínio:</strong> ${Validators.sanitize(AppState.registrationData.condoName)}
-                            </p>
-                            <p style="color: var(--text-light); margin-bottom: 8px;">
-                                <strong>Unidades:</strong> ${AppState.registrationData.condoUnits}
-                            </p>
-                            <p style="color: var(--text-light);">
-                                <strong>Email de acesso:</strong> ${AppState.registrationData.email}
-                            </p>
-                        </div>
+                    <div class="calendar-grid">
+                        <div class="week-day" v-for="d in ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb']">{{ d }}</div>
                         
-                        <div style="padding: 16px; background: #F0F9FF; border-radius: var(--radius); margin-top: 20px;">
-                            <p style="color: var(--info); font-size: 0.9rem;">
-                                <i class='bx bx-info-circle'></i>
-                                Um email de confirmação foi enviado para ${AppState.registrationData.email}. 
-                                Verifique sua caixa de entrada (e spam) para confirmar seu email.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 30px;">
-                        <h4 style="color: var(--text-main); margin-bottom: 16px;">Próximos Passos:</h4>
-                        <div style="display: grid; gap: 12px; max-width: 400px; margin: 0 auto;">
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                                <div style="background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class='bx bx-link'></i>
-                                </div>
-                                <div style="text-align: left;">
-                                    <strong style="color: var(--text-main);">Compartilhe o link de cadastro</strong>
-                                    <p style="color: var(--text-light); font-size: 0.9rem;">Envie para os moradores se cadastrarem</p>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
-                                <div style="background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                    <i class='bx bx-map'></i>
-                                </div>
-                                <div style="text-align: left;">
-                                    <strong style="color: var(--text-main);">Cadastre áreas comuns</strong>
-                                    <p style="color: var(--text-light); font-size: 0.9rem;">Adicione salão de festas, churrasqueira, etc.</p>
+                        <div v-for="n in paddingDays" :key="'pad-'+n" class="day-cell empty"></div>
+                        
+                        <div v-for="day in daysInMonth" :key="day" 
+                             class="day-cell" 
+                             :class="{ 'today': isToday(day) }"
+                             @click="selectDate(day)">
+                            <span class="day-number">{{ day }}</span>
+                            <div class="dots-container">
+                                <div v-for="res in getReservationsForDay(day)" :key="res.id" 
+                                     class="day-dot" 
+                                     :style="{ background: getStatusColor(res.status) }"
+                                     :title="res.status">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="action-buttons" style="margin-top: 40px;">
-                        <button class="btn btn-primary" onclick="App.loginWithNewAccount()">
-                            <i class='bx bx-log-in'></i> Acessar Minha Conta
-                        </button>
-                        <button class="btn btn-outline" onclick="UI.renderLanding()">
-                            <i class='bx bx-home'></i> Voltar para Início
-                        </button>
-                    </div>
-                </div>`;
-        },
-
-        renderDash(user) {
-            let menu = '';
-            const userName = user.name.split(' ')[0];
-            const sanitizedName = Validators.sanitize(userName);
-            const sanitizedRole = Validators.sanitize(user.role);
-            
-            if (user.role === 'super') {
-                menu = `
-                    <div class="card" onclick="App.modalAddCondo()" style="background: var(--primary); color: white; cursor: pointer; text-align: center; padding: 20px;">
-                        <i class='bx bx-building' style="font-size: 2rem; margin-bottom: 10px;"></i>
-                        <b>+ Novo Condomínio</b>
-                    </div>
-                    <div class="card" onclick="App.modalAddSindico()" style="cursor: pointer; text-align: center; padding: 20px;">
-                        <i class='bx bx-user-plus' style="font-size: 2rem; margin-bottom: 10px; color: var(--primary);"></i>
-                        <b>+ Novo Síndico</b>
-                    </div>
-                `;
-            } else if (user.role === 'sindico') {
-                menu = `
-                    <div class="card" onclick="App.copyInvite('${user.condoId}')" style="background: var(--primary); color: white; cursor: pointer; text-align: center; padding: 20px;">
-                        <i class='bx bx-link-alt' style="font-size: 2rem; margin-bottom: 10px;"></i>
-                        <b>Copiar Link de Convite</b>
-                    </div>
-                    <div class="grid-menu" style="margin-top: 20px">
-                        <div class="menu-item" onclick="App.modalManageAreas()">
-                            <i class='bx bx-map menu-icon'></i>
-                            <h5>Áreas Comuns</h5>
-                            <small style="color: var(--text-light);">Gerenciar</small>
-                        </div>
-                        <div class="menu-item" onclick="App.viewReservations('sindico')">
-                            <i class='bx bx-calendar-check menu-icon'></i>
-                            <h5>Reservas</h5>
-                            <small style="color: var(--text-light);">Gerenciar</small>
-                        </div>
-                    </div>
-                `;
-            } else {
-                menu = `
-                    <div class="grid-menu">
-                        <div class="menu-item" onclick="App.modalNewReservation()">
-                            <i class='bx bx-calendar-plus menu-icon'></i>
-                            <h5>Nova Reserva</h5>
-                            <small style="color: var(--text-light);">Áreas comuns</small>
-                        </div>
-                        <div class="menu-item" onclick="App.viewReservations('morador')">
-                            <i class='bx bx-calendar-event menu-icon'></i>
-                            <h5>Minhas Reservas</h5>
-                            <small style="color: var(--text-light);">Histórico</small>
-                        </div>
-                    </div>
-                `;
-            }
-
-            document.getElementById('app').innerHTML = `
-                <div class="header">
-                    <div>
-                        <b>${sanitizedName}</b> 
-                        <span class="badge-role">${sanitizedRole}</span>
-                        ${AppState.isOnline ? 
-                            '<span class="status-indicator status-online"></span><small style="color: var(--success);">Online</small>' : 
-                            '<span class="status-indicator status-offline"></span><small style="color: var(--danger);">Offline</small>'
-                        }
-                    </div>
-                    <button onclick="App.logout()" style="background: none; border: none; cursor: pointer;">
-                        <i class='bx bx-log-out' style="font-size: 1.5rem; color: var(--danger);"></i>
-                    </button>
-                </div>
-                
-                <div style="padding: 20px;">
-                    ${menu}
-                    
-                    ${user.role === 'morador' ? `
-                        <div style="margin-top: 30px;">
-                            <h4 style="margin-bottom: 16px; color: var(--text-main);">Áreas Disponíveis</h4>
-                            <div id="areasList">
-                                <div class="skeleton skeleton-card"></div>
-                                <div class="skeleton skeleton-card"></div>
-                            </div>
-                        </div>
-                    ` : ''}
-                    
-                    <div style="margin-top: 30px;">
-                        <h4 style="margin-bottom: 16px; color: var(--text-main);">Reservas Recentes</h4>
-                        <div id="listRes">
-                            <div class="skeleton skeleton-card"></div>
-                            <div class="skeleton skeleton-card"></div>
-                        </div>
-                    </div>
-                    
-                    ${user.role === 'sindico' ? `
-                        <div id="debugSection" style="margin-top: 30px;"></div>
-                    ` : ''}
-                </div>`;
-
-            if (user.role !== 'super') {
-                App.loadRes(user.condoId);
-                if (user.role === 'morador') {
-                    App.loadCommonAreas(user.condoId);
-                    App.loadMyReservations(user.uid);
-                } else if (user.role === 'sindico') {
-                    App.loadCommonAreas(user.condoId);
-                    App.addDebugTools();
-                }
-            }
-        },
-
-        renderCommonAreas(areas) {
-            const container = document.getElementById('areasList');
-            if (!container) return;
-
-            if (!areas || areas.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class='bx bx-map-alt'></i>
-                        <p>Nenhuma área comum cadastrada</p>
-                        ${AppState.currentUser?.role === 'sindico' ? 
-                            '<button class="btn btn-primary btn-sm" onclick="App.modalNewArea()" style="margin-top: 16px;">+ Adicionar Área</button>' : 
-                            ''
-                        }
-                    </div>`;
-                return;
-            }
-
-            const html = areas.map(area => {
-                const isAvailable = area.isActive && !area.isMaintenance;
-                const statusClass = isAvailable ? 'available' : 'unavailable';
-                const statusText = isAvailable ? 'Disponível' : (area.isMaintenance ? 'Manutenção' : 'Indisponível');
-                
-                return `
-                    <div class="card area-card">
-                        <div class="area-availability ${statusClass}">${statusText}</div>
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(area.name)}</strong>
-                                <p style="color: var(--text-light); margin-top: 8px; font-size: 0.9rem;">
-                                    ${Validators.sanitize(area.description || '')}
-                                </p>
-                                <div style="margin-top: 12px;">
-                                    <small style="color: var(--text-lighter);">
-                                        <i class='bx bx-user'></i> Capacidade: ${area.capacity || 'N/A'}
-                                    </small>
-                                    ${area.hourlyRate ? `
-                                        <small style="color: var(--text-lighter); margin-left: 16px;">
-                                            <i class='bx bx-dollar'></i> R$ ${area.hourlyRate}/hora
-                                        </small>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${AppState.currentUser?.role === 'morador' && isAvailable ? `
-                            <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;">
-                                <button class="btn btn-primary btn-sm" onclick="App.modalNewReservation('${area.id}')">
-                                    <i class='bx bx-calendar-plus'></i> Reservar
-                                </button>
-                            </div>
-                        ` : ''}
-                        
-                        ${AppState.currentUser?.role === 'sindico' ? `
-                            <div style="margin-top: 16px; border-top: 1px solid var(--border-light); padding-top: 16px;">
-                                <div class="action-buttons">
-                                    <button class="btn btn-outline btn-sm" onclick="App.modalEditArea('${area.id}')">
-                                        <i class='bx bx-edit'></i> Editar
-                                    </button>
-                                    <button class="btn btn-danger btn-sm" onclick="App.deleteArea('${area.id}')">
-                                        <i class='bx bx-trash'></i> Excluir
-                                    </button>
-                                </div>
-                            </div>
-                        ` : ''}
-                    </div>`;
-            }).join('');
-
-            container.innerHTML = html;
-        },
-
-        renderReservations(reservations, viewType = 'all') {
-            const container = document.getElementById('listRes');
-            if (!container) return;
-
-            if (!reservations || reservations.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class='bx bx-calendar-x'></i>
-                        <p>Nenhuma reserva encontrada</p>
-                        ${AppState.currentUser?.role === 'sindico' ? 
-                            '<small style="color: var(--text-light); margin-top: 8px;">Os moradores ainda não fizeram reservas</small>' :
-                            AppState.currentUser?.role === 'morador' ?
-                            '<button class="btn btn-primary btn-sm" onclick="App.modalNewReservation()" style="margin-top: 16px;">+ Fazer Minha Primeira Reserva</button>' :
-                            ''
-                        }
-                    </div>`;
-                return;
-            }
-
-            let filteredReservations = reservations;
-            if (viewType === 'morador') {
-                filteredReservations = reservations.filter(r => r.userId === AppState.currentUser?.uid);
-            }
-
-            const html = filteredReservations.map(res => {
-                const area = AppState.commonAreas.find(a => a.id === res.areaId);
-                const areaName = area ? area.name : 'Área não encontrada';
-                const statusClass = `status-${res.status || 'pending'}`;
-                
-                return `
-                    <div class="card reservation-card ${res.status || 'pending'}">
-                        <div style="display: flex; justify-content: space-between; align-items: start;">
-                            <div style="flex: 1;">
-                                <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(areaName)}</strong>
-                                <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
-                                    ${Validators.formatDate(res.date)} • ${Validators.formatTime(res.startTime)} - ${Validators.formatTime(res.endTime)}
-                                </p>
-                                <div style="margin-top: 8px;">
-                                    <span class="badge-status ${statusClass}">${res.status || 'pendente'}</span>
-                                    ${res.guestName ? `
-                                        <small style="color: var(--text-light); margin-left: 12px;">
-                                            <i class='bx bx-user'></i> ${Validators.sanitize(res.guestName)}
-                                        </small>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        ${res.notes ? `
-                            <div style="margin-top: 12px; padding: 12px; background: var(--bg-app); border-radius: var(--radius-sm);">
-                                <small style="color: var(--text-light);">${Validators.sanitize(res.notes)}</small>
-                            </div>
-                        ` : ''}
-                        
-                        ${AppState.currentUser?.role === 'sindico' && res.status === 'pending' ? `
-                            <div class="action-buttons">
-                                <button class="btn btn-success btn-sm" onclick="App.approveReservation('${res.id}')">
-                                    <i class='bx bx-check'></i> Aprovar
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="App.rejectReservation('${res.id}')">
-                                    <i class='bx bx-x'></i> Rejeitar
-                                </button>
-                            </div>
-                        ` : ''}
-                        
-                        ${AppState.currentUser?.role === 'morador' && res.status === 'pending' ? `
-                            <div style="margin-top: 16px;">
-                                <button class="btn btn-danger btn-sm" onclick="App.cancelReservation('${res.id}')">
-                                    <i class='bx bx-x'></i> Cancelar
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>`;
-            }).join('');
-
-            container.innerHTML = html;
-        },
-
-        renderReservationsView(viewType = 'sindico') {
-            const isSindico = viewType === 'sindico';
-            const title = isSindico ? 'Gerenciar Reservas' : 'Minhas Reservas';
-            
-            document.getElementById('app').innerHTML = `
-                <div class="header">
-                    <div>
-                        <button onclick="UI.renderDash(AppState.currentUser)" style="background: none; border: none; cursor: pointer; margin-right: 12px;">
-                            <i class='bx bx-arrow-back' style="font-size: 1.5rem; color: var(--text-light);"></i>
-                        </button>
-                        <b>${title}</b>
-                    </div>
-                    <button onclick="App.logout()" style="background: none; border: none; cursor: pointer;">
-                        <i class='bx bx-log-out' style="font-size: 1.5rem; color: var(--danger);"></i>
-                    </button>
-                </div>
-                
-                <div style="padding: 20px;">
-                    <div class="tabs">
-                        <button class="tab active" onclick="App.switchReservationTab('pending', '${viewType}')">Pendentes</button>
-                        <button class="tab" onclick="App.switchReservationTab('confirmed', '${viewType}')">Confirmadas</button>
-                        <button class="tab" onclick="App.switchReservationTab('cancelled', '${viewType}')">Canceladas</button>
-                    </div>
-                    
-                    <div id="reservationsTabContent">
-                        <div class="skeleton skeleton-card"></div>
-                        <div class="skeleton skeleton-card"></div>
-                    </div>
-                </div>`;
-            
-            App.loadReservationsForView('pending', viewType);
-        }
-    };
-
-    // ============================================
-    // APP CONTROLLER
-    // ============================================
-    const App = {
-        async init() {
-            // Check online status
-            window.addEventListener('online', () => {
-                AppState.isOnline = true;
-                UI.toast('Conexão restaurada', 'success');
-                const warning = document.getElementById('offline-warning');
-                if (warning) warning.style.display = 'none';
-                
-                if (AppState.currentUser) {
-                    App.loadRes(AppState.currentUser.condoId);
-                    if (AppState.currentUser.role === 'morador') {
-                        App.loadCommonAreas(AppState.currentUser.condoId);
-                        App.loadMyReservations(AppState.currentUser.uid);
-                    }
-                }
-            });
-
-            window.addEventListener('offline', () => {
-                AppState.isOnline = false;
-                UI.toast('Você está offline', 'warning');
-                const warning = document.getElementById('offline-warning');
-                if (warning) warning.style.display = 'block';
-            });
-
-            // Auth state listener
-            onAuthStateChanged(auth, async (user) => {
-                const params = new URLSearchParams(window.location.search);
-                
-                // Direct link registration flow for residents
-                if (!user && params.get('cadastro') && params.get('condoId')) {
-                    UI.loading(true, 'Carregando informações...');
-                    try {
-                        const condoId = params.get('condoId');
-                        const condoDoc = await getDoc(doc(db, "condos", condoId));
-                        
-                        if (condoDoc.exists()) {
-                            const condoName = condoDoc.data().name;
-                            UI.renderRegister(condoName, condoId);
-                        } else {
-                            UI.renderRegister('Condomínio', condoId);
-                            UI.toast('Condomínio não encontrado', 'warning');
-                        }
-                    } catch (error) {
-                        console.error('Erro ao carregar condomínio:', error);
-                        UI.renderRegister('Condomínio', params.get('condoId'));
-                        UI.toast('Erro ao carregar informações', 'error');
-                    }
-                    UI.loading(false);
-                }
-                // User is logged in
-                else if (user) {
-                    try {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        
-                        if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            AppState.currentUser = { uid: user.uid, ...userData };
-                            UI.renderDash(AppState.currentUser);
-                            
-                            if (userData.role !== 'super' && userData.condoId) {
-                                const condoDoc = await getDoc(doc(db, "condos", userData.condoId));
-                                if (condoDoc.exists()) {
-                                    AppState.condoData = condoDoc.data();
-                                }
-                            }
-                        } else {
-                            await signOut(auth);
-                            UI.renderLanding();
-                            UI.toast('Perfil não encontrado', 'error');
-                        }
-                    } catch (error) {
-                        console.error('Erro ao carregar usuário:', error);
-                        UI.renderLanding();
-                        UI.toast('Erro ao carregar dados do usuário', 'error');
-                    }
-                }
-                // No user, no direct link - show landing page
-                else {
-                    UI.renderLanding();
-                }
-            });
-        },
-
-        async login(e) {
-            if (e) e.preventDefault();
-            
-            const email = document.getElementById('logEmail')?.value;
-            const password = document.getElementById('logPass')?.value;
-            const loginBtn = document.getElementById('loginBtn');
-            
-            if (!email || !password) {
-                // Login with stored credentials from registration
-                if (AppState.registrationData.email && AppState.registrationData.password) {
-                    await this.loginWithCredentials(AppState.registrationData.email, AppState.registrationData.password);
-                    return;
-                }
-                return;
-            }
-            
-            if (!Validators.email(email)) {
-                UI.showInputError('logEmail', 'Email inválido');
-                return;
-            }
-            
-            if (password.length < 6) {
-                UI.showInputError('logPass', 'Senha muito curta');
-                return;
-            }
-            
-            try {
-                if (loginBtn) {
-                    loginBtn.disabled = true;
-                    loginBtn.classList.add('btn-loading');
-                }
-                UI.loading(true, 'Entrando...');
-                
-                await signInWithEmailAndPassword(auth, email, password);
-                window.history.replaceState({}, document.title, window.location.pathname);
-                
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                let message = 'Erro no login';
-                switch (error.code) {
-                    case 'auth/user-not-found':
-                    case 'auth/wrong-password':
-                        message = 'Email ou senha incorretos';
-                        break;
-                    case 'auth/too-many-requests':
-                        message = 'Muitas tentativas. Tente novamente mais tarde';
-                        break;
-                    case 'auth/user-disabled':
-                        message = 'Conta desativada';
-                        break;
-                    case 'auth/email-not-verified':
-                        message = 'Email não verificado. Verifique sua caixa de entrada';
-                        break;
-                }
-                
-                UI.toast(message, 'error');
-            } finally {
-                UI.loading(false);
-                if (loginBtn) {
-                    loginBtn.disabled = false;
-                    loginBtn.classList.remove('btn-loading');
-                }
-            }
-        },
-
-        async loginWithCredentials(email, password) {
-            try {
-                UI.loading(true, 'Entrando...');
-                await signInWithEmailAndPassword(auth, email, password);
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch (error) {
-                console.error('Login error:', error);
-                UI.toast('Erro ao fazer login com nova conta', 'error');
-                UI.renderLogin();
-            } finally {
-                UI.loading(false);
-            }
-        },
-
-        // New Registration Flow
-        startRegistration() {
-            AppState.registrationStep = 1;
-            AppState.registrationData = {};
-            UI.renderRegistrationStep1();
-        },
-
-        goToRegistrationStep(step) {
-            AppState.registrationStep = step;
-            if (step === 1) UI.renderRegistrationStep1();
-            else if (step === 2) UI.renderRegistrationStep2();
-            else if (step === 3) UI.renderRegistrationStep3();
-        },
-
-        saveRegistrationStep1() {
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const phone = document.getElementById('regPhone').value;
-            const cpf = document.getElementById('regCpf').value;
-            
-            // Validation
-            if (!Validators.name(name)) {
-                UI.showInputError('regName', 'Nome inválido (mínimo 3 letras)');
-                return;
-            }
-            
-            if (!Validators.email(email)) {
-                UI.showInputError('regEmail', 'Email inválido');
-                return;
-            }
-            
-            if (!Validators.phone(phone)) {
-                UI.showInputError('regPhone', 'Telefone inválido (10 ou 11 dígitos)');
-                return;
-            }
-            
-            if (!Validators.cpf(cpf)) {
-                UI.showInputError('regCpf', 'CPF inválido');
-                return;
-            }
-            
-            // Save data
-            AppState.registrationData = {
-                ...AppState.registrationData,
-                name: name.trim(),
-                email: email.trim().toLowerCase(),
-                phone: phone.replace(/\D/g, ''),
-                cpf: cpf.replace(/\D/g, '')
-            };
-            
-            // Go to next step
-            AppState.registrationStep = 2;
-            UI.renderRegistrationStep2();
-        },
-
-        saveRegistrationStep2() {
-            const condoName = document.getElementById('condoName').value;
-            const condoAddress = document.getElementById('condoAddress').value;
-            const condoUnits = document.getElementById('condoUnits').value;
-            const condoBlocks = document.getElementById('condoBlocks').value || '1';
-            const condoType = document.getElementById('condoType').value;
-            
-            // Validation
-            if (!condoName.trim()) {
-                UI.showInputError('condoName', 'Nome do condomínio é obrigatório');
-                return;
-            }
-            
-            if (!condoAddress.trim()) {
-                UI.showInputError('condoAddress', 'Endereço é obrigatório');
-                return;
-            }
-            
-            if (!condoUnits || parseInt(condoUnits) < 1) {
-                UI.showInputError('condoUnits', 'Número de unidades inválido');
-                return;
-            }
-            
-            if (!condoType) {
-                UI.showInputError('condoType', 'Tipo de condomínio é obrigatório');
-                return;
-            }
-            
-            // Save data
-            AppState.registrationData = {
-                ...AppState.registrationData,
-                condoName: condoName.trim(),
-                condoAddress: condoAddress.trim(),
-                condoUnits: parseInt(condoUnits),
-                condoBlocks: parseInt(condoBlocks),
-                condoType: condoType
-            };
-            
-            // Go to next step
-            AppState.registrationStep = 3;
-            UI.renderRegistrationStep3();
-        },
-
-        async completeRegistration() {
-            const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
-            
-            // Validation
-            const passValidation = Validators.password(password);
-            if (!passValidation.valid) {
-                UI.showInputError('regPassword', passValidation.message);
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                UI.showInputError('regConfirmPassword', 'As senhas não coincidem');
-                return;
-            }
-            
-            try {
-                const btn = document.getElementById('completeRegBtn');
-                btn.disabled = true;
-                btn.classList.add('btn-loading');
-                UI.loading(true, 'Criando sua conta...');
-                
-                // 1. Create condo first
-                const condoData = {
-                    name: Validators.sanitize(AppState.registrationData.condoName),
-                    address: Validators.sanitize(AppState.registrationData.condoAddress),
-                    units: AppState.registrationData.condoUnits,
-                    blocks: AppState.registrationData.condoBlocks,
-                    type: AppState.registrationData.condoType,
-                    isActive: true,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now()
-                };
-                
-                const condoRef = await addDoc(collection(db, "condos"), condoData);
-                const condoId = condoRef.id;
-                
-                // 2. Create user account
-                const userCred = await createUserWithEmailAndPassword(
-                    auth, 
-                    AppState.registrationData.email, 
-                    password
-                );
-                
-                // 3. Send email verification
-                await sendEmailVerification(userCred.user);
-                
-                // 4. Create user document
-                const userData = {
-                    name: Validators.sanitize(AppState.registrationData.name),
-                    email: AppState.registrationData.email,
-                    phone: AppState.registrationData.phone,
-                    cpf: AppState.registrationData.cpf,
-                    role: 'sindico',
-                    condoId: condoId,
-                    unit: 'ADM',
-                    isEmailVerified: false,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now()
-                };
-                
-                await setDoc(doc(db, "users", userCred.user.uid), userData);
-                
-                // 5. Update profile
-                await updateProfile(userCred.user, {
-                    displayName: AppState.registrationData.name
-                });
-                
-                // Save password for auto-login
-                AppState.registrationData.password = password;
-                
-                UI.loading(false);
-                UI.renderRegistrationSuccess();
-                
-                // Clear registration data after a delay
-                setTimeout(() => {
-                    AppState.registrationData = {};
-                }, 5000);
-                
-            } catch (error) {
-                console.error('Registration error:', error);
-                UI.loading(false);
-                
-                let message = 'Erro ao criar conta';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        message = 'Este email já está cadastrado';
-                        break;
-                    case 'auth/weak-password':
-                        message = 'Senha muito fraca';
-                        break;
-                    case 'auth/invalid-email':
-                        message = 'Email inválido';
-                        break;
-                    case 'auth/network-request-failed':
-                        message = 'Erro de conexão. Verifique sua internet';
-                        break;
-                }
-                
-                UI.toast(message, 'error');
-                
-                const btn = document.getElementById('completeRegBtn');
-                if (btn) {
-                    btn.disabled = false;
-                    btn.classList.remove('btn-loading');
-                }
-            }
-        },
-
-        loginWithNewAccount() {
-            if (AppState.registrationData.email && AppState.registrationData.password) {
-                App.loginWithCredentials(AppState.registrationData.email, AppState.registrationData.password);
-            } else {
-                UI.renderLogin();
-            }
-        },
-
-        showTerms() {
-            UI.showModal('Termos de Uso', `
-                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                    <h4 style="color: var(--text-main); margin-bottom: 16px;">Termos de Uso do CondoSaaS</h4>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>1. Aceitação dos Termos</strong><br>
-                        Ao usar o CondoSaaS, você concorda com estes termos de uso.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>2. Uso do Serviço</strong><br>
-                        Você concorda em usar o serviço apenas para fins legais e de acordo com estas regras.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>3. Responsabilidades</strong><br>
-                        O síndico é responsável pelo gerenciamento adequado dos dados do condomínio.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>4. Privacidade</strong><br>
-                        Seus dados são protegidos conforme nossa Política de Privacidade.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>5. Modificações</strong><br>
-                        Podemos modificar estes termos a qualquer momento, notificando os usuários.
-                    </p>
-                    <div class="action-buttons" style="margin-top: 24px;">
-                        <button class="btn btn-primary" onclick="UI.hideModal()">Entendi e Concordo</button>
+                    <div style="margin-top: 15px; font-size: 0.8rem; color: #666; display: flex; gap: 15px; justify-content: center;">
+                        <span style="display:flex; align-items:center;"><div class="day-dot" style="background:#4CAF50; margin-right:4px;"></div> Aprovado</span>
+                        <span style="display:flex; align-items:center;"><div class="day-dot" style="background:#2196F3; margin-right:4px;"></div> Pendente</span>
                     </div>
                 </div>
-            `);
-        },
 
-        showPrivacy() {
-            UI.showModal('Política de Privacidade', `
-                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
-                    <h4 style="color: var(--text-main); margin-bottom: 16px;">Política de Privacidade</h4>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>1. Coleta de Dados</strong><br>
-                        Coletamos apenas dados necessários para o funcionamento do sistema.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>2. Uso dos Dados</strong><br>
-                        Seus dados são usados apenas para fornecer e melhorar nossos serviços.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>3. Proteção</strong><br>
-                        Implementamos medidas de segurança para proteger seus dados.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>4. Compartilhamento</strong><br>
-                        Não vendemos ou compartilhamos seus dados com terceiros.
-                    </p>
-                    <p style="color: var(--text-light); margin-bottom: 12px;">
-                        <strong>5. Seus Direitos</strong><br>
-                        Você pode solicitar a exclusão de seus dados a qualquer momento.
-                    </p>
-                    <div class="action-buttons" style="margin-top: 24px;">
-                        <button class="btn btn-primary" onclick="UI.hideModal()">Entendi</button>
-                    </div>
-                </div>
-            `);
-        },
-
-        // Old registration flow (for residents via link)
-        async register(e) {
-            e.preventDefault();
-            
-            const data = {
-                name: document.getElementById('regName').value,
-                cpf: document.getElementById('regCpf').value,
-                unit: document.getElementById('regUnit').value,
-                email: document.getElementById('regEmail').value,
-                pass: document.getElementById('regPass').value,
-                condoId: document.getElementById('regCondoId').value
-            };
-            
-            const regBtn = document.getElementById('regBtn');
-            
-            if (!Validators.name(data.name)) {
-                UI.showInputError('regName', 'Nome inválido');
-                return;
-            }
-            
-            if (!Validators.cpf(data.cpf)) {
-                UI.showInputError('regCpf', 'CPF inválido');
-                return;
-            }
-            
-            if (!Validators.email(data.email)) {
-                UI.showInputError('regEmail', 'Email inválido');
-                return;
-            }
-            
-            const passValidation = Validators.password(data.pass);
-            if (!passValidation.valid) {
-                UI.showInputError('regPass', passValidation.message);
-                return;
-            }
-            
-            try {
-                regBtn.disabled = true;
-                regBtn.classList.add('btn-loading');
-                UI.loading(true, 'Criando conta...');
-                
-                const cred = await createUserWithEmailAndPassword(auth, data.email, data.pass);
-                
-                let role = 'morador';
-                if (!data.condoId) {
-                    role = 'super';
-                }
-                
-                await setDoc(doc(db, "users", cred.user.uid), {
-                    name: Validators.sanitize(data.name),
-                    cpf: data.cpf.replace(/\D/g, ''),
-                    unit: Validators.sanitize(data.unit),
-                    email: data.email,
-                    role: role,
-                    condoId: data.condoId || null,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now()
-                });
-                
-                await updateProfile(cred.user, {
-                    displayName: data.name
-                });
-                
-                if (data.condoId) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-                
-                UI.toast('Conta criada com sucesso!', 'success');
-                
-            } catch (error) {
-                console.error('Registration error:', error);
-                
-                let message = 'Erro ao criar conta';
-                switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        message = 'Email já cadastrado';
-                        break;
-                    case 'auth/weak-password':
-                        message = 'Senha muito fraca';
-                        break;
-                    case 'auth/invalid-email':
-                        message = 'Email inválido';
-                        break;
-                }
-                
-                UI.toast(message, 'error');
-            } finally {
-                UI.loading(false);
-                if (regBtn) {
-                    regBtn.disabled = false;
-                    regBtn.classList.remove('btn-loading');
-                }
-            }
-        },
-
-        viewRegister() {
-            UI.renderRegister();
-        },
-
-        async logout() {
-            try {
-                await signOut(auth);
-                UI.toast('Deslogado com sucesso', 'success');
-                window.location.reload();
-            } catch (error) {
-                console.error('Logout error:', error);
-                UI.toast('Erro ao deslogar', 'error');
-            }
-        },
-
-        // Common Areas Management
-        async loadCommonAreas(condoId) {
-            if (!condoId) return;
-            
-            try {
-                const q = query(
-                    collection(db, "common_areas"),
-                    where("condoId", "==", condoId)
-                );
-                
-                const snap = await getDocs(q);
-                const areas = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                // Filtrar áreas ativas no cliente
-                const activeAreas = areas.filter(area => area.isActive !== false);
-                AppState.commonAreas = activeAreas;
-                UI.renderCommonAreas(activeAreas);
-                
-            } catch (error) {
-                console.error('Error loading common areas:', error);
-                
-                // Fallback: carregar todas e filtrar
-                try {
-                    const snap = await getDocs(collection(db, "common_areas"));
-                    const allAreas = snap.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    
-                    const filteredAreas = allAreas.filter(area => 
-                        area.condoId === condoId && area.isActive !== false
-                    );
-                    
-                    AppState.commonAreas = filteredAreas;
-                    UI.renderCommonAreas(filteredAreas);
-                    
-                } catch (fallbackError) {
-                    console.error('Erro no fallback áreas:', fallbackError);
-                    UI.toast('Erro ao carregar áreas comuns', 'error');
-                }
-            }
-        },
-
-        async modalManageAreas() {
-            const areas = AppState.commonAreas;
-            
-            let areasHtml = '';
-            if (areas.length === 0) {
-                areasHtml = `
-                    <div class="empty-state">
-                        <i class='bx bx-map-alt'></i>
-                        <p>Nenhuma área comum cadastrada</p>
-                    </div>`;
-            } else {
-                areasHtml = areas.map(area => `
-                    <div class="card">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${Validators.sanitize(area.name)}</strong>
-                                <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
-                                    ${area.description || ''}
-                                </p>
-                                <div style="margin-top: 8px;">
-                                    <span class="badge-status ${area.isActive ? 'status-confirmed' : 'status-cancelled'}">
-                                        ${area.isActive ? 'Ativa' : 'Inativa'}
-                                    </span>
-                                    ${area.isMaintenance ? 
-                                        '<span class="badge-status status-pending" style="margin-left: 8px;">Manutenção</span>' : ''}
-                                </div>
-                            </div>
-                            <div>
-                                <button class="btn btn-outline btn-sm" onclick="App.modalEditArea('${area.id}')">
-                                    <i class='bx bx-edit'></i>
-                                </button>
+                <div class="card">
+                    <h3>Espaços Disponíveis</h3>
+                    <div v-for="space in spaces" :key="space.id" style="border-bottom: 1px solid #eee; padding: 15px 0; display: flex; gap: 15px; align-items: center;">
+                        <div :style="{backgroundImage: 'url('+space.image+')'}" style="width: 60px; height: 60px; background-size: cover; border-radius: 8px;"></div>
+                        <div style="flex: 1;">
+                            <strong>{{ space.name }}</strong>
+                            <div style="font-size: 0.9rem; color: #666;">
+                                <i class="material-icons" style="font-size: 14px; vertical-align: text-bottom;">group</i> {{ space.capacity }} • R$ {{ space.hourlyRate }}/h
                             </div>
                         </div>
+                        <button class="btn btn-primary" @click="openBookingModal(space)">Reservar</button>
                     </div>
-                `).join('');
-            }
-            
-            UI.showModal('Gerenciar Áreas Comuns', `
-                <div style="margin-bottom: 20px;">
-                    <button class="btn btn-primary" onclick="App.modalNewArea()">
-                        <i class='bx bx-plus'></i> Nova Área Comum
-                    </button>
                 </div>
-                <div id="areasListModal">
-                    ${areasHtml}
+            </div>
+
+            <div v-if="currentView === 'reservations'">
+                <h2>Minhas Reservas</h2>
+                <div v-if="myReservations.length === 0" style="text-align: center; padding: 40px; color: #999;">
+                    <i class="material-icons" style="font-size: 48px; margin-bottom: 10px;">event_busy</i>
+                    <p>Você ainda não possui reservas.</p>
+                    <button class="btn btn-outline" style="margin-top: 10px;" @click="currentView = 'calendar'">Fazer Reserva</button>
                 </div>
-            `);
-        },
 
-        async modalNewArea() {
-            UI.showModal('Nova Área Comum', `
-                <form onsubmit="App.saveArea(event)" id="formNewArea">
-                    <label for="areaName">Nome da Área *</label>
-                    <input class="input-field" id="areaName" placeholder="Ex: Salão de Festas" required>
-                    <div class="input-error"></div>
-                    
-                    <label for="areaDescription">Descrição</label>
-                    <textarea class="input-field" id="areaDescription" placeholder="Descrição da área..." rows="3"></textarea>
-                    
-                    <label for="areaCapacity">Capacidade (pessoas)</label>
-                    <input type="number" class="input-field" id="areaCapacity" placeholder="100" min="1">
-                    
-                    <label for="areaHourlyRate">Taxa por hora (R$)</label>
-                    <input type="number" step="0.01" class="input-field" id="areaHourlyRate" placeholder="0.00">
-                    
-                    <label for="areaRules">Regras de uso</label>
-                    <textarea class="input-field" id="areaRules" placeholder="Regras para utilização..." rows="3"></textarea>
-                    
-                    <div class="action-buttons">
-                        <button type="submit" class="btn btn-primary" id="saveAreaBtn">Salvar Área</button>
-                        <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
+                <div v-for="res in myReservations" :key="res.id" class="card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <strong>{{ getSpaceName(res.spaceId) }}</strong>
+                        <span class="badge" :class="res.status">{{ translateStatus(res.status) }}</span>
                     </div>
-                </form>
-            `);
-        },
-
-        async modalEditArea(areaId) {
-            const area = AppState.commonAreas.find(a => a.id === areaId);
-            if (!area) return;
-            
-            UI.showModal('Editar Área Comum', `
-                <form onsubmit="App.updateArea(event, '${areaId}')" id="formEditArea">
-                    <label for="editAreaName">Nome da Área *</label>
-                    <input class="input-field" id="editAreaName" value="${Validators.sanitize(area.name)}" required>
-                    <div class="input-error"></div>
+                    <p style="display: flex; align-items: center; gap: 5px; color: #555;">
+                        <i class="material-icons" style="font-size: 18px;">calendar_today</i>
+                        {{ formatDate(res.date) }} às {{ res.time }}
+                    </p>
                     
-                    <label for="editAreaDescription">Descrição</label>
-                    <textarea class="input-field" id="editAreaDescription" rows="3">${Validators.sanitize(area.description || '')}</textarea>
-                    
-                    <label for="editAreaCapacity">Capacidade (pessoas)</label>
-                    <input type="number" class="input-field" id="editAreaCapacity" value="${area.capacity || ''}" min="1">
-                    
-                    <label for="editAreaHourlyRate">Taxa por hora (R$)</label>
-                    <input type="number" step="0.01" class="input-field" id="editAreaHourlyRate" value="${area.hourlyRate || ''}">
-                    
-                    <label for="editAreaRules">Regras de uso</label>
-                    <textarea class="input-field" id="editAreaRules" rows="3">${Validators.sanitize(area.rules || '')}</textarea>
-                    
-                    <div style="display: flex; gap: 12px; margin-top: 16px;">
-                        <label style="flex: 1;">
-                            <input type="checkbox" id="editAreaActive" ${area.isActive ? 'checked' : ''}>
-                            <span style="margin-left: 8px;">Ativa</span>
-                        </label>
-                        <label style="flex: 1;">
-                            <input type="checkbox" id="editAreaMaintenance" ${area.isMaintenance ? 'checked' : ''}>
-                            <span style="margin-left: 8px;">Em manutenção</span>
-                        </label>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #eee; display: flex; gap: 8px;">
+                        <button v-if="res.status === 'approved'" class="btn btn-outline" @click="generateReceipt(res)">
+                            <i class="material-icons">description</i> Comprovante
+                        </button>
+                        <button v-if="res.status === 'pending'" class="btn btn-outline" style="color: #D32F2F; border-color: #D32F2F;" @click="deleteReservation(res.id)">
+                            Cancelar
+                        </button>
                     </div>
-                    
-                    <div class="action-buttons" style="margin-top: 20px;">
-                        <button type="submit" class="btn btn-primary" id="updateAreaBtn">Atualizar</button>
-                        <button type="button" class="btn btn-danger" onclick="App.deleteArea('${areaId}')">Excluir</button>
-                        <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'admin'">
+                <h2>Painel do Síndico</h2>
+                <div class="card">
+                    <div style="display: flex; gap: 20px; text-align: center;">
+                        <div style="flex: 1; border-right: 1px solid #eee;">
+                            <div style="font-size: 2rem; color: #2196F3; font-weight: bold;">{{ pendingReservations.length }}</div>
+                            <div style="font-size: 0.8rem; text-transform: uppercase; color: #666;">Pendentes</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-size: 2rem; color: #4CAF50; font-weight: bold;">{{ approvedReservations.length }}</div>
+                            <div style="font-size: 0.8rem; text-transform: uppercase; color: #666;">Aprovadas</div>
+                        </div>
                     </div>
-                </form>
-            `);
-        },
+                </div>
 
-        async saveArea(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('areaName').value;
-            const btn = document.getElementById('saveAreaBtn');
-            
-            if (!name.trim()) {
-                UI.showInputError('areaName', 'Nome é obrigatório');
-                return;
-            }
-            
-            try {
-                btn.disabled = true;
-                btn.classList.add('btn-loading');
-                UI.loading(true, 'Salvando área...');
+                <h3 style="margin-bottom: 10px;">Solicitações Recentes</h3>
+                <div v-if="pendingReservations.length === 0" style="padding: 20px; text-align: center; color: #999; background: white; border-radius: 8px;">
+                    <i class="material-icons">check</i> Nenhuma solicitação pendente!
+                </div>
                 
-                const areaData = {
-                    name: Validators.sanitize(name),
-                    description: Validators.sanitize(document.getElementById('areaDescription').value),
-                    capacity: parseInt(document.getElementById('areaCapacity').value) || null,
-                    hourlyRate: parseFloat(document.getElementById('areaHourlyRate').value) || null,
-                    rules: Validators.sanitize(document.getElementById('areaRules').value),
-                    condoId: AppState.currentUser.condoId,
-                    isActive: true,
-                    isMaintenance: false,
-                    createdAt: Timestamp.now(),
-                    updatedAt: Timestamp.now()
-                };
-                
-                await addDoc(collection(db, "common_areas"), areaData);
-                
-                UI.hideModal();
-                UI.toast('Área comum criada com sucesso!', 'success');
-                App.loadCommonAreas(AppState.currentUser.condoId);
-                
-            } catch (error) {
-                console.error('Error saving area:', error);
-                UI.toast('Erro ao criar área', 'error');
-            } finally {
-                UI.loading(false);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.classList.remove('btn-loading');
-                }
-            }
-        },
-
-        async updateArea(e, areaId) {
-            e.preventDefault();
-            
-            const name = document.getElementById('editAreaName').value;
-            const btn = document.getElementById('updateAreaBtn');
-            
-            if (!name.trim()) {
-                UI.showInputError('editAreaName', 'Nome é obrigatório');
-                return;
-            }
-            
-            try {
-                btn.disabled = true;
-                btn.classList.add('btn-loading');
-                UI.loading(true, 'Atualizando área...');
-                
-                const areaData = {
-                    name: Validators.sanitize(name),
-                    description: Validators.sanitize(document.getElementById('editAreaDescription').value),
-                    capacity: parseInt(document.getElementById('editAreaCapacity').value) || null,
-                    hourlyRate: parseFloat(document.getElementById('editAreaHourlyRate').value) || null,
-                    rules: Validators.sanitize(document.getElementById('editAreaRules').value),
-                    isActive: document.getElementById('editAreaActive').checked,
-                    isMaintenance: document.getElementById('editAreaMaintenance').checked,
-                    updatedAt: Timestamp.now()
-                };
-                
-                await updateDoc(doc(db, "common_areas", areaId), areaData);
-                
-                UI.hideModal();
-                UI.toast('Área atualizada com sucesso!', 'success');
-                App.loadCommonAreas(AppState.currentUser.condoId);
-                
-            } catch (error) {
-                console.error('Error updating area:', error);
-                UI.toast('Erro ao atualizar área', 'error');
-            } finally {
-                UI.loading(false);
-                if (btn) {
-                    btn.disabled = false;
-                    btn.classList.remove('btn-loading');
-                }
-            }
-        },
-
-        async deleteArea(areaId) {
-            if (!confirm('Tem certeza que deseja excluir esta área?')) return;
-            
-            try {
-                UI.loading(true, 'Excluindo área...');
-                await deleteDoc(doc(db, "common_areas", areaId));
-                
-                UI.hideModal();
-                UI.toast('Área excluída com sucesso!', 'success');
-                App.loadCommonAreas(AppState.currentUser.condoId);
-                
-            } catch (error) {
-                console.error('Error deleting area:', error);
-                UI.toast('Erro ao excluir área', 'error');
-            } finally {
-                UI.loading(false);
-            }
-        },
-
-        // Reservations Management
-        async loadRes(condoId) {
-            if (!condoId) {
-                console.log('loadRes: condoId não fornecido');
-                return;
-            }
-            
-            try {
-                const q = query(
-                    collection(db, "reservations"), 
-                    where("condoId", "==", condoId)
-                );
-                
-                const snap = await getDocs(q);
-                const reservations = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                // Ordenar manualmente no cliente
-                reservations.sort((a, b) => {
-                    const dateCompare = new Date(b.date) - new Date(a.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return b.startTime.localeCompare(a.startTime);
-                });
-                
-                AppState.reservations = reservations;
-                UI.renderReservations(reservations);
-                
-            } catch (error) {
-                console.error('Erro detalhado ao carregar reservas:', error);
-                
-                // Fallback: tentar carregar sem filtros
-                try {
-                    const snap = await getDocs(collection(db, "reservations"));
-                    const allReservations = snap.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
+                <div v-for="res in pendingReservations" :key="res.id" class="card" style="border-left: 4px solid #2196F3;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>{{ getSpaceName(res.spaceId) }}</strong>
+                        <span style="font-size: 0.8rem; color: #666;">{{ formatDate(res.date) }}</span>
+                    </div>
+                    <div style="margin: 5px 0; color: #444;">Morador: {{ getUserName(res.userId) }}</div>
+                    <div style="font-size: 0.9rem; color: #666;">Horário: {{ res.time }} • {{ res.guests }} convidados</div>
                     
-                    // Filtrar manualmente no cliente
-                    const filteredReservations = allReservations.filter(r => r.condoId === condoId);
-                    AppState.reservations = filteredReservations;
-                    UI.renderReservations(filteredReservations);
-                    
-                } catch (fallbackError) {
-                    console.error('Erro no fallback:', fallbackError);
-                    UI.toast('Não foi possível carregar as reservas', 'error');
-                }
-            }
-        },
+                    <div style="margin-top: 12px; display: flex; gap: 10px;">
+                        <button class="btn btn-primary" style="flex: 1;" @click="updateStatus(res.id, 'approved')">Aprovar</button>
+                        <button class="btn btn-outline" style="flex: 1; color: #D32F2F; border-color: #D32F2F" @click="updateStatus(res.id, 'rejected')">Rejeitar</button>
+                    </div>
+                </div>
+            </div>
 
-        async loadMyReservations(userId) {
-            try {
-                const q = query(
-                    collection(db, "reservations"), 
-                    where("userId", "==", userId)
-                );
-                
-                const snap = await getDocs(q);
-                const reservations = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                // Ordenar manualmente
-                reservations.sort((a, b) => {
-                    const dateCompare = new Date(b.date) - new Date(a.date);
-                    if (dateCompare !== 0) return dateCompare;
-                    return b.startTime.localeCompare(a.startTime);
-                });
-                
-                AppState.myReservations = reservations;
-                
-            } catch (error) {
-                console.error('Erro ao carregar minhas reservas:', error);
-            }
-        },
+        </div>
 
-        async modalNewReservation(areaId = null) {
-            const areas = AppState.commonAreas.filter(area => area.isActive && !area.isMaintenance);
-            
-            if (areas.length === 0) {
-                UI.toast('Nenhuma área disponível para reserva', 'warning');
-                return;
-            }
-            
-            let areaOptions = areas.map(area => `
-                <option value="${area.id}" ${areaId === area.id ? 'selected' : ''}>
-                    ${Validators.sanitize(area.name)} ${area.capacity ? `(${area.capacity} pessoas)` : ''}
-                </option>
-            `).join('');
-            
-            const timeSlots = [];
-            for (let hour = 8; hour <= 22; hour++) {
-                for (let minute = 0; minute < 60; minute += 30) {
-                    const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                    timeSlots.push(time);
-                }
-            }
-            
-            const timeOptions = timeSlots.map(time => `
-                <option value="${time}">${time}</option>
-            `).join('');
-            
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const defaultDate = tomorrow.toISOString().split('T')[0];
-            
-            UI.showModal('Nova Reserva', `
-                <form onsubmit="App.saveReservation(event)" id="formNewReservation">
-                    <label for="reservationArea">Área Comum *</label>
-                    <select class="select-field" id="reservationArea" required>
-                        <option value="">Selecione uma área</option>
-                        ${areaOptions}
+        <div class="bottom-nav">
+            <div class="nav-item" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'">
+                <i class="material-icons">calendar_month</i>Início
+            </div>
+            <div class="nav-item" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'">
+                <i class="material-icons">receipt_long</i>Reservas
+            </div>
+            <div v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'">
+                <i class="material-icons">verified_user</i>Síndico
+            </div>
+        </div>
+
+        <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+            <div class="modal-content">
+                <h3>Reservar {{ selectedSpace?.name }}</h3>
+                <div class="form-group">
+                    <label>Data da Reserva</label>
+                    <input type="date" v-model="form.date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Horário</label>
+                    <select v-model="form.time" class="form-control">
+                        <option>08:00 - 12:00</option>
+                        <option>13:00 - 17:00</option>
+                        <option>18:00 - 22:00</option>
+                        <option>10:00 - 16:00 (Festa)</option>
                     </select>
-                    
-                    <label for="reservationDate">Data *</label>
-                    <input type="date" class="input-field" id="reservationDate" value="${defaultDate}" min="${new Date().toISOString().split('T')[0]}" required>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label for="reservationStartTime">Hora Início *</label>
-                            <select class="select-field" id="reservationStartTime" required>
-                                <option value="">Selecione</option>
-                                ${timeOptions}
-                            </select>
-                        </div>
-                        <div>
-                            <label for="reservationEndTime">Hora Fim *</label>
-                            <select class="select-field" id="reservationEndTime" required>
-                                <option value="">Selecione</option>
-                                ${timeOptions}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <label for="reservationGuestCount">Número de Convidados</label>
-                            <input type="number" class="input-field" id="reservationGuestCount" placeholder="0" min="0">
-                            
-                            <label for="reservationNotes">Observações</label>
-                            <textarea class="input-field" id="reservationNotes" placeholder="Informações adicionais..." rows="3"></textarea>
-                            
-                            <div class="action-buttons">
-                                <button type="submit" class="btn btn-primary" id="saveReservationBtn">Solicitar Reserva</button>
-                                <button type="button" class="btn btn-outline" onclick="UI.hideModal()">Cancelar</button>
-                            </div>
-                        </form>
-                    `);
-                },
+                </div>
+                <div class="form-group">
+                    <label>Número de Convidados (Max: {{ selectedSpace?.capacity }})</label>
+                    <input type="number" v-model="form.guests" class="form-control" :max="selectedSpace?.capacity">
+                </div>
+                
+                <div style="background: #f0f8ff; padding: 10px; border-radius: 4px; margin: 15px 0; font-size: 0.9rem;">
+                    <strong>Valor Estimado:</strong> R$ {{ calculateTotal }}
+                </div>
 
-                async saveReservation(e) {
-                    e.preventDefault();
-                    
-                    const areaId = document.getElementById('reservationArea').value;
-                    const date = document.getElementById('reservationDate').value;
-                    const startTime = document.getElementById('reservationStartTime').value;
-                    const endTime = document.getElementById('reservationEndTime').value;
-                    const btn = document.getElementById('saveReservationBtn');
-                    
-                    if (!areaId) {
-                        UI.toast('Selecione uma área', 'warning');
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button class="btn btn-outline" @click="showModal = false">Cancelar</button>
+                    <button class="btn btn-primary" @click="confirmBooking" :disabled="loading" style="min-width: 100px;">
+                        <span v-if="loading" style="display:inline-block; animation: spin 1s linear infinite;">↻</span>
+                        {{ loading ? 'Enviando...' : 'Confirmar' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { createApp, ref, computed, onMounted } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.js';
+        
+        // --- CONFIGURAÇÃO DO FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // SUAS CHAVES AQUI
+        const firebaseConfig = {
+            apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
+            authDomain: "condosaas-app.firebaseapp.com",
+            projectId: "condosaas-app",
+            storageBucket: "condosaas-app.firebasestorage.app",
+            messagingSenderId: "1094942324011",
+            appId: "1:1094942324011:web:49293ce94269e71807416e"
+        };
+
+        // Inicializa Firebase
+        let db;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase conectado com sucesso ao projeto condosaas-app!");
+        } catch (e) {
+            console.error("Erro na conexão Firebase:", e);
+        }
+
+        createApp({
+            setup() {
+                // Estado da Aplicação
+                const currentView = ref('calendar');
+                const reservations = ref([]);
+                const loading = ref(false);
+                const toasts = ref([]);
+                
+                // Usuário Mockado (Simulação de Login para MVP)
+                const currentUser = ref({ id: 'user_123', name: 'João Silva', type: 'resident', apartment: '101 Bloco A' });
+                
+                // Base de usuários fictícia para o Síndico identificar quem reservou
+                const usersList = [
+                    { id: 'user_123', name: 'João Silva', type: 'resident' },
+                    { id: 'admin_001', name: 'Maria Síndica', type: 'syndic' },
+                    { id: 'user_456', name: 'Carlos Vizinho', type: 'resident' }
+                ];
+
+                // Espaços do Condomínio (Dados Estáticos)
+                const spaces = ref([
+                    { id: 'esp_1', name: 'Salão de Festas', capacity: 50, hourlyRate: 80, image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=200&q=80' },
+                    { id: 'esp_2', name: 'Churrasqueira Gourmet', capacity: 20, hourlyRate: 30, image: 'https://images.unsplash.com/photo-1555244162-803834f70033?w=200&q=80' },
+                    { id: 'esp_3', name: 'Quadra Poliesportiva', capacity: 30, hourlyRate: 15, image: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=200&q=80' }
+                ]);
+
+                // Lógica do Calendário
+                const currentDate = ref(new Date());
+                const monthLabel = computed(() => currentDate.value.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }));
+                
+                const daysInMonth = computed(() => {
+                    const year = currentDate.value.getFullYear();
+                    const month = currentDate.value.getMonth();
+                    return new Date(year, month + 1, 0).getDate();
+                });
+
+                const paddingDays = computed(() => {
+                    const year = currentDate.value.getFullYear();
+                    const month = currentDate.value.getMonth();
+                    return new Date(year, month, 1).getDay();
+                });
+
+                // --- LISTENERS REALTIME DO FIREBASE ---
+                onMounted(() => {
+                    if (!db) {
+                        showToast("Erro: Banco de dados não configurado.", "error");
                         return;
                     }
                     
-                    if (!date) {
-                        UI.toast('Selecione uma data', 'warning');
-                        return;
-                    }
-                    
-                    if (!startTime || !endTime) {
-                        UI.toast('Selecione horário de início e fim', 'warning');
-                        return;
-                    }
-                    
-                    if (startTime >= endTime) {
-                        UI.toast('Hora de início deve ser antes da hora de fim', 'warning');
-                        return;
-                    }
-                    
+                    // Escuta a coleção 'reservations' ordenando por data
                     try {
-                        btn.disabled = true;
-                        btn.classList.add('btn-loading');
-                        UI.loading(true, 'Criando reserva...');
+                        const q = query(collection(db, "reservations"), orderBy("date"));
                         
-                        const area = AppState.commonAreas.find(a => a.id === areaId);
-                        if (!area) {
-                            throw new Error('Área não encontrada');
-                        }
-                        
-                        // Check for conflicts
-                        const conflicts = await App.checkReservationConflict(areaId, date, startTime, endTime);
-                        if (conflicts) {
-                            UI.toast('Já existe uma reserva neste horário', 'warning');
-                            return;
-                        }
-                        
-                        const reservationData = {
-                            areaId: areaId,
-                            areaName: area.name,
-                            condoId: AppState.currentUser.condoId,
-                            userId: AppState.currentUser.uid,
-                            userName: AppState.currentUser.name,
-                            userUnit: AppState.currentUser.unit,
-                            date: date,
-                            startTime: startTime + ':00',
-                            endTime: endTime + ':00',
-                            guestCount: parseInt(document.getElementById('reservationGuestCount').value) || 0,
-                            notes: Validators.sanitize(document.getElementById('reservationNotes').value),
+                        onSnapshot(q, (snapshot) => {
+                            reservations.value = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }));
+                        }, (error) => {
+                            console.error("Erro ao ler dados:", error);
+                            showToast("Permissão negada. Verifique as Regras do Firestore.", "error");
+                        });
+                    } catch (e) {
+                        console.error("Erro query:", e);
+                    }
+                });
+
+                // --- AÇÕES DO SISTEMA ---
+
+                // Toast Notification
+                const showToast = (message, type = 'success') => {
+                    toasts.value.push({ message, type });
+                    setTimeout(() => toasts.value.shift(), 4000);
+                };
+
+                // Abrir Modal de Reserva
+                const showModal = ref(false);
+                const selectedSpace = ref(null);
+                const form = ref({ date: '', time: '13:00 - 17:00', guests: 10 });
+
+                const openBookingModal = (space) => {
+                    selectedSpace.value = space;
+                    // Define data padrão como hoje ou dia selecionado
+                    const year = currentDate.value.getFullYear();
+                    const month = String(currentDate.value.getMonth() + 1).padStart(2, '0');
+                    const day = String(new Date().getDate()).padStart(2, '0');
+                    form.value.date = `${year}-${month}-${day}`;
+                    showModal.value = true;
+                };
+
+                // Confirmar e Enviar para Firebase
+                const confirmBooking = async () => {
+                    if (!db) return;
+                    if (!form.value.date) return showToast("Selecione uma data válida", "error");
+                    
+                    // Validação simples de conflito (apenas frontend por enquanto)
+                    const conflict = reservations.value.find(r => 
+                        r.spaceId === selectedSpace.value.id && 
+                        r.date === form.value.date && 
+                        r.status === 'approved'
+                    );
+
+                    if (conflict) {
+                        return showToast("Este horário já está reservado e aprovado.", "error");
+                    }
+
+                    loading.value = true;
+                    try {
+                        await addDoc(collection(db, "reservations"), {
+                            spaceId: selectedSpace.value.id,
+                            userId: currentUser.value.id,
+                            userName: currentUser.value.name, // Salvando nome para facilitar
+                            date: form.value.date,
+                            time: form.value.time,
+                            guests: form.value.guests,
                             status: 'pending',
-                            createdAt: Timestamp.now(),
-                            updatedAt: Timestamp.now()
-                        };
-                        
-                        await addDoc(collection(db, "reservations"), reservationData);
-                        
-                        UI.hideModal();
-                        UI.toast('Reserva solicitada com sucesso! Aguarde aprovação.', 'success');
-                        
-                        App.loadRes(AppState.currentUser.condoId);
-                        App.loadMyReservations(AppState.currentUser.uid);
-                        
-                    } catch (error) {
-                        console.error('Error saving reservation:', error);
-                        UI.toast('Erro ao criar reserva', 'error');
+                            createdAt: new Date().toISOString()
+                        });
+                        showToast("Solicitação enviada com sucesso!");
+                        showModal.value = false;
+                        currentView.value = 'reservations';
+                    } catch (e) {
+                        showToast("Erro ao salvar: " + e.message, "error");
                     } finally {
-                        UI.loading(false);
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.classList.remove('btn-loading');
-                        }
-                    }
-                },
-
-                async checkReservationConflict(areaId, date, startTime, endTime) {
-                    try {
-                        const q = query(
-                            collection(db, "reservations"),
-                            where("areaId", "==", areaId),
-                            where("date", "==", date)
-                        );
-                        
-                        const snap = await getDocs(q);
-                        
-                        const newStart = new Date(`${date}T${startTime}`);
-                        const newEnd = new Date(`${date}T${endTime}`);
-                        
-                        for (const doc of snap.docs) {
-                            const reservation = doc.data();
-                            
-                            if (reservation.status !== 'confirmed') {
-                                continue;
-                            }
-                            
-                            const existingStart = new Date(`${date}T${reservation.startTime}`);
-                            const existingEnd = new Date(`${date}T${reservation.endTime}`);
-                            
-                            if (
-                                (newStart >= existingStart && newStart < existingEnd) ||
-                                (newEnd > existingStart && newEnd <= existingEnd) ||
-                                (newStart <= existingStart && newEnd >= existingEnd)
-                            ) {
-                                return true;
-                            }
-                        }
-                        
-                        return false;
-                        
-                    } catch (error) {
-                        console.error('Erro ao verificar conflitos:', error);
-                        return false;
-                    }
-                },
-
-                async approveReservation(reservationId) {
-                    try {
-                        UI.loading(true, 'Aprovando reserva...');
-                        
-                        await updateDoc(doc(db, "reservations", reservationId), {
-                            status: 'confirmed',
-                            updatedAt: Timestamp.now()
-                        });
-                        
-                        UI.toast('Reserva aprovada com sucesso!', 'success');
-                        App.loadRes(AppState.currentUser.condoId);
-                        
-                    } catch (error) {
-                        console.error('Error approving reservation:', error);
-                        UI.toast('Erro ao aprovar reserva', 'error');
-                    } finally {
-                        UI.loading(false);
-                    }
-                },
-
-                async rejectReservation(reservationId) {
-                    try {
-                        UI.loading(true, 'Rejeitando reserva...');
-                        
-                        await updateDoc(doc(db, "reservations", reservationId), {
-                            status: 'cancelled',
-                            updatedAt: Timestamp.now()
-                        });
-                        
-                        UI.toast('Reserva rejeitada', 'success');
-                        App.loadRes(AppState.currentUser.condoId);
-                        
-                    } catch (error) {
-                        console.error('Error rejecting reservation:', error);
-                        UI.toast('Erro ao rejeitar reserva', 'error');
-                    } finally {
-                        UI.loading(false);
-                    }
-                },
-
-                async cancelReservation(reservationId) {
-                    if (!confirm('Tem certeza que deseja cancelar esta reserva?')) return;
-                    
-                    try {
-                        UI.loading(true, 'Cancelando reserva...');
-                        
-                        await updateDoc(doc(db, "reservations", reservationId), {
-                            status: 'cancelled',
-                            updatedAt: Timestamp.now()
-                        });
-                        
-                        UI.toast('Reserva cancelada com sucesso!', 'success');
-                        App.loadRes(AppState.currentUser.condoId);
-                        App.loadMyReservations(AppState.currentUser.uid);
-                        
-                    } catch (error) {
-                        console.error('Error cancelling reservation:', error);
-                        UI.toast('Erro ao cancelar reserva', 'error');
-                    } finally {
-                        UI.loading(false);
-                    }
-                },
-
-                async loadReservationsForView(status, viewType) {
-                    try {
-                        const container = document.getElementById('reservationsTabContent');
-                        if (!container) return;
-                        
-                        container.innerHTML = `
-                            <div class="skeleton skeleton-card"></div>
-                            <div class="skeleton skeleton-card"></div>
-                        `;
-                        
-                        let reservations = [];
-                        
-                        if (viewType === 'sindico') {
-                            const allReservations = AppState.reservations || [];
-                            reservations = allReservations.filter(r => r.status === status);
-                        } else {
-                            try {
-                                const q = query(
-                                    collection(db, "reservations"),
-                                    where("userId", "==", AppState.currentUser.uid),
-                                    where("status", "==", status)
-                                );
-                                
-                                const snap = await getDocs(q);
-                                reservations = snap.docs.map(doc => ({
-                                    id: doc.id,
-                                    ...doc.data()
-                                }));
-                                
-                            } catch (queryError) {
-                                const myReservations = AppState.myReservations || [];
-                                reservations = myReservations.filter(r => r.status === status);
-                            }
-                        }
-                        
-                        // Ordenar manualmente
-                        reservations.sort((a, b) => {
-                            const dateCompare = new Date(b.date) - new Date(a.date);
-                            if (dateCompare !== 0) return dateCompare;
-                            return b.startTime.localeCompare(a.startTime);
-                        });
-                        
-                        // Renderizar reservas
-                        if (reservations.length === 0) {
-                            container.innerHTML = `
-                                <div class="empty-state">
-                                    <i class='bx bx-calendar-x'></i>
-                                    <p>Nenhuma reserva ${status === 'pending' ? 'pendente' : status === 'confirmed' ? 'confirmada' : 'cancelada'}</p>
-                                </div>`;
-                            return;
-                        }
-                        
-                        const html = reservations.map(res => {
-                            const area = AppState.commonAreas.find(a => a.id === res.areaId);
-                            const areaName = area ? area.name : 'Área não encontrada';
-                            
-                            return `
-                                <div class="card reservation-card ${res.status}">
-                                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                                        <div style="flex: 1;">
-                                            <strong style="color: var(--text-main); font-size: 1.1rem;">${Validators.sanitize(areaName)}</strong>
-                                            <p style="color: var(--text-light); margin-top: 4px; font-size: 0.9rem;">
-                                                ${Validators.formatDate(res.date)} • ${Validators.formatTime(res.startTime)} - ${Validators.formatTime(res.endTime)}
-                                            </p>
-                                            <div style="margin-top: 8px;">
-                                                <small style="color: var(--text-light);">
-                                                    <i class='bx bx-user'></i> ${Validators.sanitize(res.userName)} • ${Validators.sanitize(res.userUnit)}
-                                                </small>
-                                                ${res.guestCount > 0 ? `
-                                                    <small style="color: var(--text-light); margin-left: 12px;">
-                                                        <i class='bx bx-group'></i> ${res.guestCount} convidado(s)
-                                                    </small>
-                                                ` : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    ${res.notes ? `
-                                        <div style="margin-top: 12px; padding: 12px; background: var(--bg-app); border-radius: var(--radius-sm);">
-                                            <small style="color: var(--text-light);">${Validators.sanitize(res.notes)}</small>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${viewType === 'sindico' && res.status === 'pending' ? `
-                                        <div class="action-buttons">
-                                            <button class="btn btn-success btn-sm" onclick="App.approveReservation('${res.id}')">
-                                                <i class='bx bx-check'></i> Aprovar
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" onclick="App.rejectReservation('${res.id}')">
-                                                <i class='bx bx-x'></i> Rejeitar
-                                            </button>
-                                        </div>
-                                    ` : ''}
-                                    
-                                    ${viewType === 'morador' && res.status === 'pending' ? `
-                                        <div style="margin-top: 16px;">
-                                            <button class="btn btn-danger btn-sm" onclick="App.cancelReservation('${res.id}')">
-                                                <i class='bx bx-x'></i> Cancelar
-                                            </button>
-                                        </div>
-                                    ` : ''}
-                                </div>`;
-                        }).join('');
-                        
-                        container.innerHTML = html;
-                        
-                    } catch (error) {
-                        console.error('Erro ao carregar reservas para view:', error);
-                        const container = document.getElementById('reservationsTabContent');
-                        if (container) {
-                            container.innerHTML = `
-                                <div class="empty-state">
-                                    <i class='bx bx-error'></i>
-                                    <p>Erro ao carregar reservas</p>
-                                </div>`;
-                        }
-                    }
-                },
-
-                switchReservationTab(status, viewType) {
-                    document.querySelectorAll('.tab').forEach(tab => {
-                        tab.classList.remove('active');
-                    });
-                    event.target.classList.add('active');
-                    
-                    App.loadReservationsForView(status, viewType);
-                },
-
-                viewReservations(viewType) {
-                    UI.renderReservationsView(viewType);
-                },
-
-                // Super admin functions
-                async modalAddCondo() {
-                    UI.showModal('Novo Condomínio', `
-                        <form onsubmit="App.saveCondo(event)" id="formCondo">
-                            <label for="newCName">Nome do Condomínio *</label>
-                            <input class="input-field" id="newCName" placeholder="Condomínio Jardim Primavera" required>
-                            <div class="input-error"></div>
-                            
-                            <label for="newCAddress">Endereço</label>
-                            <input class="input-field" id="newCAddress" placeholder="Rua Exemplo, 123">
-                            
-                            <label for="newCUnits">Número de Unidades</label>
-                            <input type="number" class="input-field" id="newCUnits" placeholder="100" min="1">
-                            
-                            <button type="submit" class="btn btn-primary" id="saveCondoBtn">Salvar Condomínio</button>
-                        </form>`);
-                },
-
-                async saveCondo(e) {
-                    e.preventDefault();
-                    
-                    const name = document.getElementById('newCName').value;
-                    const address = document.getElementById('newCAddress').value;
-                    const units = document.getElementById('newCUnits').value;
-                    const btn = document.getElementById('saveCondoBtn');
-                    
-                    if (!name.trim()) {
-                        UI.showInputError('newCName', 'Nome é obrigatório');
-                        return;
-                    }
-                    
-                    try {
-                        btn.disabled = true;
-                        btn.classList.add('btn-loading');
-                        
-                        await addDoc(collection(db, "condos"), {
-                            name: Validators.sanitize(name),
-                            address: Validators.sanitize(address),
-                            units: parseInt(units) || 0,
-                            isActive: true,
-                            createdAt: Timestamp.now()
-                        });
-                        
-                        UI.hideModal();
-                        UI.toast('Condomínio criado com sucesso!', 'success');
-                        
-                    } catch (error) {
-                        console.error('Error saving condo:', error);
-                        UI.toast('Erro ao criar condomínio', 'error');
-                    } finally {
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.classList.remove('btn-loading');
-                        }
-                    }
-                },
-
-                async modalAddSindico() {
-                    UI.loading(true, 'Carregando condomínios...');
-                    try {
-                        const snap = await getDocs(collection(db, "condos"));
-                        const options = snap.docs
-                            .filter(d => d.data().isActive)
-                            .map(d => `<option value="${d.id}">${Validators.sanitize(d.data().name)}</option>`)
-                            .join('');
-                        
-                        UI.loading(false);
-                        
-                        UI.showModal('Novo Síndico', `
-                            <form onsubmit="App.saveSindico(event)" id="formSindico">
-                                <label for="sName">Nome Completo *</label>
-                                    <input class="input-field" id="sName" placeholder="Maria Souza" required>
-                                    <div class="input-error"></div>
-                                    
-                                    <label for="sEmail">Email *</label>
-                                    <input type="email" class="input-field" id="sEmail" placeholder="sindico@condominio.com" required>
-                                    <div class="input-error"></div>
-                                    
-                                    <label for="sPass">Senha *</label>
-                                    <input type="password" class="input-field" id="sPass" placeholder="••••••••" required>
-                                    <div class="input-error"></div>
-                                    <div class="input-hint">Mínimo 6 caracteres</div>
-                                    
-                                    <label for="sCondo">Condomínio *</label>
-                                    <select class="select-field" id="sCondo" required>
-                                        <option value="">Selecione um condomínio</option>
-                                        ${options}
-                                    </select>
-                                    
-                                    <button type="submit" class="btn btn-primary" id="saveSindicoBtn">Criar Síndico</button>
-                                </form>`);
-                                
-                        } catch (error) {
-                            UI.loading(false);
-                            UI.toast('Erro ao carregar condomínios', 'error');
-                        }
-                    },
-
-                    async saveSindico(e) {
-                        e.preventDefault();
-                        
-                        const name = document.getElementById('sName').value;
-                        const email = document.getElementById('sEmail').value;
-                        const password = document.getElementById('sPass').value;
-                        const condoId = document.getElementById('sCondo').value;
-                        const btn = document.getElementById('saveSindicoBtn');
-                        
-                        if (!Validators.name(name)) {
-                            UI.showInputError('sName', 'Nome inválido');
-                            return;
-                        }
-                        
-                        if (!Validators.email(email)) {
-                            UI.showInputError('sEmail', 'Email inválido');
-                            return;
-                        }
-                        
-                        if (password.length < 6) {
-                            UI.showInputError('sPass', 'Mínimo 6 caracteres');
-                            return;
-                        }
-                        
-                        if (!condoId) {
-                            UI.toast('Selecione um condomínio', 'warning');
-                            return;
-                        }
-                        
-                        try {
-                            btn.disabled = true;
-                            btn.classList.add('btn-loading');
-                            UI.loading(true, 'Criando síndico...');
-                            
-                            const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-                            const secondaryAuth = getAuth(secondaryApp);
-                            
-                            const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
-                            
-                            await setDoc(doc(db, "users", cred.user.uid), {
-                                name: Validators.sanitize(name),
-                                email: email,
-                                role: 'sindico',
-                                condoId: condoId,
-                                unit: 'ADM',
-                                createdAt: Timestamp.now(),
-                                updatedAt: Timestamp.now()
-                            });
-                            
-                            await signOut(secondaryAuth);
-                            
-                            UI.hideModal();
-                            UI.toast('Síndico criado com sucesso!', 'success');
-                            
-                        } catch (error) {
-                            console.error('Error saving sindico:', error);
-                            
-                            let message = 'Erro ao criar síndico';
-                            if (error.code === 'auth/email-already-in-use') {
-                                message = 'Email já cadastrado';
-                            }
-                            
-                            UI.toast(message, 'error');
-                        } finally {
-                            UI.loading(false);
-                            if (btn) {
-                                btn.disabled = false;
-                                btn.classList.remove('btn-loading');
-                            }
-                        }
-                    },
-
-                    copyInvite(condoId) {
-                        const link = `${window.location.origin}${window.location.pathname}?cadastro=true&condoId=${condoId}`;
-                        
-                        navigator.clipboard.writeText(link).then(() => {
-                            UI.toast('Link copiado para a área de transferência!', 'success');
-                        }).catch(err => {
-                            console.error('Erro ao copiar:', err);
-                            UI.toast('Erro ao copiar link', 'error');
-                        });
-                    },
-
-                    addDebugTools() {
-                        const debugSection = document.getElementById('debugSection');
-                        if (!debugSection) return;
-                        
-                        debugSection.innerHTML = `
-                            <div class="card">
-                                <h4 style="color: var(--text-main); margin-bottom: 12px;">Ferramentas de Debug</h4>
-                                <div class="action-buttons">
-                                    <button class="btn btn-outline btn-sm" onclick="App.testFirebaseConnection()">
-                                        <i class='bx bx-wifi'></i> Testar Conexão
-                                    </button>
-                                    <button class="btn btn-outline btn-sm" onclick="App.createTestData()">
-                                        <i class='bx bx-test-tube'></i> Criar Dados Teste
-                                    </button>
-                                    <button class="btn btn-outline btn-sm" onclick="console.log('AppState:', AppState); UI.toast('Estado logado no console', 'info')">
-                                        <i class='bx bx-code-alt'></i> Log Estado
-                                    </button>
-                                </div>
-                                <small style="color: var(--text-light); margin-top: 12px; display: block;">
-                                    Abra o console do navegador (F12) para ver logs detalhados
-                                </small>
-                            </div>`;
-                    },
-
-                    async testFirebaseConnection() {
-                        try {
-                            UI.loading(true, 'Testando conexão...');
-                            const testCollection = collection(db, "test");
-                            const testDoc = doc(testCollection, "test");
-                            
-                            // Tentar ler (pode falhar se não existir, mas testa conexão)
-                            try {
-                                await getDoc(testDoc);
-                            } catch (e) {
-                                // Ignora erro de documento não existente
-                            }
-                            
-                            UI.loading(false);
-                            UI.toast('Conexão com Firebase: OK ✓', 'success');
-                            console.log('Firebase Connection: SUCCESS');
-                            
-                        } catch (error) {
-                            UI.loading(false);
-                            UI.toast('Erro na conexão com Firebase', 'error');
-                            console.error('Firebase Connection: FAILED', error);
-                        }
-                    },
-
-                    async createTestData() {
-                        if (!AppState.currentUser || !AppState.currentUser.condoId) {
-                            UI.toast('Usuário não logado ou sem condomínio', 'error');
-                            return;
-                        }
-                        
-                        try {
-                            UI.loading(true, 'Criando dados de teste...');
-                            
-                            // Criar área comum de teste
-                            const areaData = {
-                                name: "Salão de Festas (Teste)",
-                                description: "Área para festas e eventos",
-                                capacity: 100,
-                                hourlyRate: 50.00,
-                                rules: "Proibido fumar. Horário até 22h.",
-                                condoId: AppState.currentUser.condoId,
-                                isActive: true,
-                                isMaintenance: false,
-                                createdAt: Timestamp.now(),
-                                updatedAt: Timestamp.now()
-                            };
-                            
-                            const areaRef = await addDoc(collection(db, "common_areas"), areaData);
-                            
-                            // Criar reserva de teste
-                            const tomorrow = new Date();
-                            tomorrow.setDate(tomorrow.getDate() + 1);
-                            const tomorrowStr = tomorrow.toISOString().split('T')[0];
-                            
-                            const reservationData = {
-                                areaId: areaRef.id,
-                                areaName: "Salão de Festas (Teste)",
-                                condoId: AppState.currentUser.condoId,
-                                userId: AppState.currentUser.uid,
-                                userName: AppState.currentUser.name,
-                                userUnit: AppState.currentUser.unit,
-                                date: tomorrowStr,
-                                startTime: "19:00:00",
-                                endTime: "22:00:00",
-                                guestCount: 50,
-                                notes: "Reserva de teste - Aniversário",
-                                status: "pending",
-                                createdAt: Timestamp.now(),
-                                updatedAt: Timestamp.now()
-                            };
-                            
-                            await addDoc(collection(db, "reservations"), reservationData);
-                            
-                            UI.loading(false);
-                            UI.toast('Dados de teste criados com sucesso!', 'success');
-                            
-                            // Recarregar dados
-                            App.loadRes(AppState.currentUser.condoId);
-                            App.loadCommonAreas(AppState.currentUser.condoId);
-                            
-                        } catch (error) {
-                            UI.loading(false);
-                            console.error('Erro ao criar dados de teste:', error);
-                            UI.toast('Erro ao criar dados de teste', 'error');
-                        }
+                        loading.value = false;
                     }
                 };
 
-                // Initialize the app
-                document.addEventListener('DOMContentLoaded', () => {
-                    console.log('🚀 CondoSaaS iniciando...');
-                    console.log('📋 Sistema de cadastro completo implementado');
-                    App.init();
+                // Atualizar Status (Síndico)
+                const updateStatus = async (id, status) => {
+                    try {
+                        const ref = doc(db, "reservations", id);
+                        await updateDoc(ref, { status });
+                        showToast(`Reserva ${status === 'approved' ? 'aprovada' : 'rejeitada'}.`);
+                    } catch (e) {
+                        showToast("Erro ao atualizar status", "error");
+                    }
+                };
+
+                // Deletar Reserva
+                const deleteReservation = async (id) => {
+                    if(!confirm("Tem certeza que deseja cancelar esta reserva?")) return;
+                    try {
+                        await deleteDoc(doc(db, "reservations", id));
+                        showToast("Reserva cancelada.");
+                    } catch (e) {
+                        showToast("Erro ao cancelar", "error");
+                    }
+                };
+
+                // --- PROPRIEDADES COMPUTADAS E AUXILIARES ---
+                const myReservations = computed(() => {
+                    return reservations.value
+                        .filter(r => r.userId === currentUser.value.id)
+                        .sort((a,b) => new Date(b.date) - new Date(a.date)); // Mais recentes primeiro
+                });
+                
+                const pendingReservations = computed(() => reservations.value.filter(r => r.status === 'pending'));
+                const approvedReservations = computed(() => reservations.value.filter(r => r.status === 'approved'));
+
+                const calculateTotal = computed(() => {
+                    if(!selectedSpace.value) return 0;
+                    return selectedSpace.value.hourlyRate * 4; // Lógica fixa de 4h para simplificar
                 });
 
-                // Expose to global scope for HTML event handlers
-                window.App = App;
-                window.UI = UI;
-            </script>
+                const getReservationsForDay = (day) => {
+                    const year = currentDate.value.getFullYear();
+                    const month = String(currentDate.value.getMonth() + 1).padStart(2, '0');
+                    const dayStr = String(day).padStart(2, '0');
+                    const fullDate = `${year}-${month}-${dayStr}`;
+                    // Filtra apenas ativas (ignora rejeitadas no calendário)
+                    return reservations.value.filter(r => r.date === fullDate && r.status !== 'rejected');
+                };
 
+                // Helpers de Navegação e Formatação
+                const changeMonth = (delta) => {
+                    const newDate = new Date(currentDate.value);
+                    newDate.setMonth(newDate.getMonth() + delta);
+                    currentDate.value = newDate;
+                };
+
+                const selectDate = (day) => {
+                    // Clica no dia e já abre o modal com a data
+                    const year = currentDate.value.getFullYear();
+                    const month = String(currentDate.value.getMonth() + 1).padStart(2, '0');
+                    const dayStr = String(day).padStart(2, '0');
+                    form.value.date = `${year}-${month}-${dayStr}`;
+                    // Abre modal do primeiro espaço (padrão) ou manda selecionar espaço
+                    // Aqui apenas setamos a data do form, usuário escolhe o espaço na lista
+                };
+
+                const getStatusColor = (s) => s === 'approved' ? '#4CAF50' : s === 'pending' ? '#2196F3' : '#F44336';
+                const translateStatus = (s) => {
+                    const map = { 'approved': 'Aprovada', 'pending': 'Pendente', 'rejected': 'Rejeitada' };
+                    return map[s] || s;
+                };
+                
+                const getSpaceName = (id) => spaces.value.find(s => s.id === id)?.name || 'Espaço Removido';
+                const getUserName = (id) => {
+                    // Tenta achar na lista mockada ou usa o nome salvo na reserva
+                    const u = usersList.find(u => u.id === id);
+                    return u ? u.name : 'Morador';
+                };
+                
+                const formatDate = (d) => { if(!d) return ''; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
+                const isToday = (day) => {
+                    const today = new Date();
+                    return day === today.getDate() && 
+                           currentDate.value.getMonth() === today.getMonth() && 
+                           currentDate.value.getFullYear() === today.getFullYear();
+                };
+                
+                // Simulação de Login (Dev Helper)
+                const toggleUser = () => {
+                    if(currentUser.value.type === 'resident') {
+                        currentUser.value = usersList[1]; // Vira Admin
+                        showToast("Modo Síndico Ativado", "success");
+                    } else {
+                        currentUser.value = usersList[0]; // Vira Morador
+                        currentView.value = 'calendar';
+                        showToast("Modo Morador Ativado", "success");
+                    }
+                };
+
+                // Gerar PDF
+                const generateReceipt = (res) => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    doc.setFillColor(46, 125, 50);
+                    doc.rect(0, 0, 210, 40, 'F');
+                    
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(22);
+                    doc.text("CondoSaas", 105, 20, null, null, 'center');
+                    doc.setFontSize(12);
+                    doc.text("Comprovante Oficial de Reserva", 105, 30, null, null, 'center');
+                    
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(14);
+                    
+                    let y = 60;
+                    doc.text(`Código da Reserva: #${res.id.substring(0, 8).toUpperCase()}`, 20, y); y += 15;
+                    doc.text(`Morador: ${currentUser.value.name}`, 20, y); y += 15;
+                    doc.text(`Espaço: ${getSpaceName(res.spaceId)}`, 20, y); y += 15;
+                    doc.text(`Data: ${formatDate(res.date)}`, 20, y); y += 15;
+                    doc.text(`Horário: ${res.time}`, 20, y); y += 15;
+                    doc.text(`Convidados: ${res.guests}`, 20, y); y += 25;
+                    
+                    doc.setFontSize(16);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text("STATUS: APROVADO PELO SÍNDICO", 105, y, null, null, 'center');
+
+                    doc.save(`comprovante_${res.date}.pdf`);
+                };
+
+                return {
+                    currentView, currentUser, spaces, showModal, form, loading, toasts,
+                    monthLabel, daysInMonth, paddingDays,
+                    myReservations, pendingReservations, approvedReservations, calculateTotal,
+                    changeMonth, selectDate, getReservationsForDay, getStatusColor, translateStatus,
+                    openBookingModal, confirmBooking, updateStatus, deleteReservation,
+                    toggleUser, getSpaceName, getUserName, formatDate, isToday, generateReceipt
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
