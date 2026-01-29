@@ -1052,6 +1052,10 @@
                             <div class="skeleton skeleton-card"></div>
                         </div>
                     </div>
+                    
+                    ${user.role === 'sindico' ? `
+                        <div id="debugSection" style="margin-top: 30px;"></div>
+                    ` : ''}
                 </div>`;
 
             if (user.role !== 'super') {
@@ -1061,6 +1065,7 @@
                     App.loadMyReservations(user.uid);
                 } else if (user.role === 'sindico') {
                     App.loadCommonAreas(user.condoId);
+                    App.addDebugTools();
                 }
             }
         },
@@ -1144,6 +1149,12 @@
                     <div class="empty-state">
                         <i class='bx bx-calendar-x'></i>
                         <p>Nenhuma reserva encontrada</p>
+                        ${AppState.currentUser?.role === 'sindico' ? 
+                            '<small style="color: var(--text-light); margin-top: 8px;">Os moradores ainda não fizeram reservas</small>' :
+                            AppState.currentUser?.role === 'morador' ?
+                            '<button class="btn btn-primary btn-sm" onclick="App.modalNewReservation()" style="margin-top: 16px;">+ Fazer Minha Primeira Reserva</button>' :
+                            ''
+                        }
                     </div>`;
                 return;
             }
@@ -1232,7 +1243,8 @@
                     </div>
                     
                     <div id="reservationsTabContent">
-                        <!-- Reservations will be loaded here -->
+                        <div class="skeleton skeleton-card"></div>
+                        <div class="skeleton skeleton-card"></div>
                     </div>
                 </div>`;
             
@@ -1497,8 +1509,7 @@
             try {
                 const q = query(
                     collection(db, "common_areas"),
-                    where("condoId", "==", condoId),
-                    where("isActive", "==", true)
+                    where("condoId", "==", condoId)
                 );
                 
                 const snap = await getDocs(q);
@@ -1507,13 +1518,32 @@
                     ...doc.data()
                 }));
                 
-                AppState.commonAreas = areas;
-                UI.renderCommonAreas(areas);
+                // Filtrar áreas ativas no cliente
+                const activeAreas = areas.filter(area => area.isActive !== false);
+                AppState.commonAreas = activeAreas;
+                UI.renderCommonAreas(activeAreas);
                 
             } catch (error) {
                 console.error('Error loading common areas:', error);
-                if (!AppState.isOnline) {
-                    UI.toast('Modo offline. Áreas podem estar desatualizadas', 'warning');
+                
+                // Fallback: carregar todas e filtrar
+                try {
+                    const snap = await getDocs(collection(db, "common_areas"));
+                    const allAreas = snap.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    const filteredAreas = allAreas.filter(area => 
+                        area.condoId === condoId && area.isActive !== false
+                    );
+                    
+                    AppState.commonAreas = filteredAreas;
+                    UI.renderCommonAreas(filteredAreas);
+                    
+                } catch (fallbackError) {
+                    console.error('Erro no fallback áreas:', fallbackError);
+                    UI.toast('Erro ao carregar áreas comuns', 'error');
                 }
             }
         },
@@ -1749,31 +1779,56 @@
 
         // Reservations Management
         async loadRes(condoId) {
-            if (!condoId) return;
+            if (!condoId) {
+                console.log('loadRes: condoId não fornecido');
+                return;
+            }
             
             try {
+                console.log('Carregando reservas para condomínio:', condoId);
+                
                 const q = query(
                     collection(db, "reservations"), 
-                    where("condoId", "==", condoId),
-                    orderBy("date", "desc"),
-                    orderBy("startTime", "desc")
+                    where("condoId", "==", condoId)
                 );
                 
                 const snap = await getDocs(q);
+                console.log('Reservas encontradas:', snap.docs.length);
+                
                 const reservations = snap.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
                 
+                // Ordenar manualmente no cliente
+                reservations.sort((a, b) => {
+                    const dateCompare = new Date(b.date) - new Date(a.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return b.startTime.localeCompare(a.startTime);
+                });
+                
                 AppState.reservations = reservations;
                 UI.renderReservations(reservations);
                 
             } catch (error) {
-                console.error('Error loading reservations:', error);
-                if (!AppState.isOnline) {
-                    UI.toast('Modo offline. Dados podem estar desatualizados', 'warning');
-                } else {
-                    UI.toast('Erro ao carregar reservas', 'error');
+                console.error('Erro detalhado ao carregar reservas:', error);
+                
+                // Fallback: tentar carregar sem filtros
+                try {
+                    const snap = await getDocs(collection(db, "reservations"));
+                    const allReservations = snap.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    
+                    // Filtrar manualmente no cliente
+                    const filteredReservations = allReservations.filter(r => r.condoId === condoId);
+                    AppState.reservations = filteredReservations;
+                    UI.renderReservations(filteredReservations);
+                    
+                } catch (fallbackError) {
+                    console.error('Erro no fallback:', fallbackError);
+                    UI.toast('Não foi possível carregar as reservas', 'error');
                 }
             }
         },
@@ -1782,9 +1837,7 @@
             try {
                 const q = query(
                     collection(db, "reservations"), 
-                    where("userId", "==", userId),
-                    orderBy("date", "desc"),
-                    orderBy("startTime", "desc")
+                    where("userId", "==", userId)
                 );
                 
                 const snap = await getDocs(q);
@@ -1793,10 +1846,17 @@
                     ...doc.data()
                 }));
                 
+                // Ordenar manualmente
+                reservations.sort((a, b) => {
+                    const dateCompare = new Date(b.date) - new Date(a.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return b.startTime.localeCompare(a.startTime);
+                });
+                
                 AppState.myReservations = reservations;
                 
             } catch (error) {
-                console.error('Error loading my reservations:', error);
+                console.error('Erro ao carregar minhas reservas:', error);
             }
         },
 
@@ -1814,7 +1874,6 @@
                 </option>
             `).join('');
             
-            // Generate time slots (8:00 to 22:00)
             const timeSlots = [];
             for (let hour = 8; hour <= 22; hour++) {
                 for (let minute = 0; minute < 60; minute += 30) {
@@ -1827,7 +1886,6 @@
                 <option value="${time}">${time}</option>
             `).join('');
             
-            // Set default date to tomorrow
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
             const defaultDate = tomorrow.toISOString().split('T')[0];
@@ -1942,7 +2000,6 @@
                 UI.hideModal();
                 UI.toast('Reserva solicitada com sucesso! Aguarde aprovação.', 'success');
                 
-                // Reload data
                 App.loadRes(AppState.currentUser.condoId);
                 App.loadMyReservations(AppState.currentUser.uid);
                 
@@ -1963,8 +2020,7 @@
                 const q = query(
                     collection(db, "reservations"),
                     where("areaId", "==", areaId),
-                    where("date", "==", date),
-                    where("status", "==", "confirmed")
+                    where("date", "==", date)
                 );
                 
                 const snap = await getDocs(q);
@@ -1974,6 +2030,11 @@
                 
                 for (const doc of snap.docs) {
                     const reservation = doc.data();
+                    
+                    if (reservation.status !== 'confirmed') {
+                        continue;
+                    }
+                    
                     const existingStart = new Date(`${date}T${reservation.startTime}`);
                     const existingEnd = new Date(`${date}T${reservation.endTime}`);
                     
@@ -1987,8 +2048,9 @@
                 }
                 
                 return false;
+                
             } catch (error) {
-                console.error('Error checking conflicts:', error);
+                console.error('Erro ao verificar conflitos:', error);
                 return false;
             }
         },
@@ -2066,32 +2128,37 @@
                     <div class="skeleton skeleton-card"></div>
                 `;
                 
-                let q;
+                let reservations = [];
+                
                 if (viewType === 'sindico') {
-                    q = query(
-                        collection(db, "reservations"),
-                        where("condoId", "==", AppState.currentUser.condoId),
-                        where("status", "==", status),
-                        orderBy("date", "desc"),
-                        orderBy("startTime", "desc")
-                    );
+                    const allReservations = AppState.reservations || [];
+                    reservations = allReservations.filter(r => r.status === status);
                 } else {
-                    q = query(
-                        collection(db, "reservations"),
-                        where("userId", "==", AppState.currentUser.uid),
-                        where("status", "==", status),
-                        orderBy("date", "desc"),
-                        orderBy("startTime", "desc")
-                    );
+                    try {
+                        const q = query(
+                            collection(db, "reservations"),
+                            where("userId", "==", AppState.currentUser.uid),
+                            where("status", "==", status)
+                        );
+                        
+                        const snap = await getDocs(q);
+                        reservations = snap.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        
+                    } catch (queryError) {
+                        const myReservations = AppState.myReservations || [];
+                        reservations = myReservations.filter(r => r.status === status);
+                    }
                 }
                 
-                const snap = await getDocs(q);
-                const reservations = snap.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+                reservations.sort((a, b) => {
+                    const dateCompare = new Date(b.date) - new Date(a.date);
+                    if (dateCompare !== 0) return dateCompare;
+                    return b.startTime.localeCompare(a.startTime);
+                });
                 
-                // Render reservations
                 if (reservations.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
@@ -2156,7 +2223,7 @@
                 container.innerHTML = html;
                 
             } catch (error) {
-                console.error('Error loading reservations for view:', error);
+                console.error('Erro ao carregar reservas para view:', error);
                 const container = document.getElementById('reservationsTabContent');
                 if (container) {
                     container.innerHTML = `
@@ -2169,13 +2236,11 @@
         },
 
         switchReservationTab(status, viewType) {
-            // Update active tab
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             event.target.classList.add('active');
             
-            // Load reservations for this tab
             App.loadReservationsForView(status, viewType);
         },
 
@@ -2362,11 +2427,128 @@
                 console.error('Erro ao copiar:', err);
                 UI.toast('Erro ao copiar link', 'error');
             });
+        },
+
+        addDebugTools() {
+            const debugSection = document.getElementById('debugSection');
+            if (!debugSection) return;
+            
+            debugSection.innerHTML = `
+                <div class="card">
+                    <h4 style="color: var(--text-main); margin-bottom: 12px;">Ferramentas de Debug</h4>
+                    <div class="action-buttons">
+                        <button class="btn btn-outline btn-sm" onclick="App.testFirebaseConnection()">
+                            <i class='bx bx-wifi'></i> Testar Conexão
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="App.createTestData()">
+                            <i class='bx bx-test-tube'></i> Criar Dados Teste
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="console.log('AppState:', AppState); UI.toast('Estado logado no console', 'info')">
+                            <i class='bx bx-code-alt'></i> Log Estado
+                        </button>
+                    </div>
+                    <small style="color: var(--text-light); margin-top: 12px; display: block;">
+                        Abra o console do navegador (F12) para ver logs detalhados
+                    </small>
+                </div>`;
+        },
+
+        async testFirebaseConnection() {
+            try {
+                UI.loading(true, 'Testando conexão...');
+                const testCollection = collection(db, "test");
+                const testDoc = doc(testCollection, "test");
+                
+                // Tentar ler (pode falhar se não existir, mas testa conexão)
+                try {
+                    await getDoc(testDoc);
+                } catch (e) {
+                    // Ignora erro de documento não existente
+                }
+                
+                UI.loading(false);
+                UI.toast('Conexão com Firebase: OK ✓', 'success');
+                console.log('Firebase Connection: SUCCESS');
+                
+            } catch (error) {
+                UI.loading(false);
+                UI.toast('Erro na conexão com Firebase', 'error');
+                console.error('Firebase Connection: FAILED', error);
+            }
+        },
+
+        async createTestData() {
+            if (!AppState.currentUser || !AppState.currentUser.condoId) {
+                UI.toast('Usuário não logado ou sem condomínio', 'error');
+                return;
+            }
+            
+            try {
+                UI.loading(true, 'Criando dados de teste...');
+                
+                // Criar área comum de teste
+                const areaData = {
+                    name: "Salão de Festas (Teste)",
+                    description: "Área para festas e eventos",
+                    capacity: 100,
+                    hourlyRate: 50.00,
+                    rules: "Proibido fumar. Horário até 22h.",
+                    condoId: AppState.currentUser.condoId,
+                    isActive: true,
+                    isMaintenance: false,
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                };
+                
+                const areaRef = await addDoc(collection(db, "common_areas"), areaData);
+                
+                // Criar reserva de teste
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                
+                const reservationData = {
+                    areaId: areaRef.id,
+                    areaName: "Salão de Festas (Teste)",
+                    condoId: AppState.currentUser.condoId,
+                    userId: AppState.currentUser.uid,
+                    userName: AppState.currentUser.name,
+                    userUnit: AppState.currentUser.unit,
+                    date: tomorrowStr,
+                    startTime: "19:00:00",
+                    endTime: "22:00:00",
+                    guestCount: 50,
+                    notes: "Reserva de teste - Aniversário",
+                    status: "pending",
+                    createdAt: Timestamp.now(),
+                    updatedAt: Timestamp.now()
+                };
+                
+                await addDoc(collection(db, "reservations"), reservationData);
+                
+                UI.loading(false);
+                UI.toast('Dados de teste criados com sucesso!', 'success');
+                
+                // Recarregar dados
+                App.loadRes(AppState.currentUser.condoId);
+                App.loadCommonAreas(AppState.currentUser.condoId);
+                
+            } catch (error) {
+                UI.loading(false);
+                console.error('Erro ao criar dados de teste:', error);
+                UI.toast('Erro ao criar dados de teste', 'error');
+            }
         }
     };
 
     // Initialize the app
     document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 CondoSaaS iniciando...');
+        console.log('📋 Para configurar índices no Firebase:');
+        console.log('1. Acesse: https://console.firebase.google.com/');
+        console.log('2. Projeto: condosaas-app');
+        console.log('3. Firestore Database > Índices');
+        console.log('4. Crie índices compostos conforme necessário');
         App.init();
     });
 
