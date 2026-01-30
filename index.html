@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CondoSaas - Painel Completo</title>
+    <title>CondoSaas - Gestão Completa</title>
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -154,10 +154,16 @@
                         </button>
                     </div>
 
-                    <div v-for="c in condoList" :key="c.id" class="card" style="display: flex; justify-content: space-between;">
+                    <div v-for="c in condoList" :key="c.id" class="card" style="display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <strong>{{ c.name }}</strong>
-                            <div style="font-size: 0.8rem; color: #666;">ID: {{ c.id }}</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="material-icons" style="color: var(--super);">business</i>
+                                <strong>{{ c.name }}</strong>
+                            </div>
+                            <div style="font-size: 0.9rem; color: #666; margin-top: 4px;">
+                                <i class="material-icons" style="font-size: 14px; vertical-align: middle;">person</i> 
+                                Síndico: {{ c.syndicName || 'Não informado' }}
+                            </div>
                         </div>
                         <span class="badge approved">Ativo</span>
                     </div>
@@ -186,14 +192,21 @@
                         <div class="card">
                             <h3>Áreas Comuns</h3>
                             <div v-if="spaces.length === 0" style="padding: 20px; text-align: center; color: #999;">Nenhuma área cadastrada.</div>
-                            <div v-for="space in spaces" :key="space.id" style="border-bottom: 1px solid #eee; padding: 15px 0; display:flex; gap:15px; align-items:center;">
-                                <div :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/60') +')'}" style="width: 60px; height: 60px; background-size: cover; border-radius: 8px; background-position: center;"></div>
-                                <div style="flex: 1;">
-                                    <strong>{{ space.name }}</strong>
-                                    <div style="font-size: 0.8rem; color: #666;">Capacidade: {{ space.capacity }}</div>
-                                    <div style="font-size: 0.75rem; color: var(--primary);">{{ space.rules }}</div>
+                            <div v-for="space in spaces" :key="space.id" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                                <div style="display: flex; gap: 15px; align-items: center;">
+                                    <div :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/60') +')'}" style="width: 60px; height: 60px; background-size: cover; border-radius: 8px; background-position: center;"></div>
+                                    <div style="flex: 1;">
+                                        <strong>{{ space.name }}</strong>
+                                        <div style="font-size: 0.8rem; color: #666;">Capacidade: {{ space.capacity }}</div>
+                                        <div style="font-size: 0.75rem; color: var(--primary);">{{ space.rules }}</div>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" @click="openBookingModal(space)">Reservar</button>
                                 </div>
-                                <button class="btn btn-primary btn-sm" @click="openBookingModal(space)">Reservar</button>
+                                <div v-if="currentUser.type === 'syndic'" style="text-align: right; margin-top: 5px;">
+                                    <button class="btn btn-outline btn-sm" @click="openBlockModal(space)" style="color: #757575; border-color: #ccc;">
+                                        <i class="material-icons" style="font-size: 14px;">block</i> Bloquear Período
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -212,35 +225,9 @@
                     </div>
 
                     <div v-if="currentView === 'admin' && currentUser.type === 'syndic'">
-                        <div class="card" style="background: #E3F2FD; border: 1px solid #BBDEFB;">
-                            <h3>QR Code de Acesso</h3>
-                            <p style="font-size: 0.8rem;">Código para cadastro: <b>{{ currentUser.condoId }}</b></p>
-                            <div style="text-align: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px;">
-                                <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' + getRegistrationLink()" alt="QR Code">
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <h3>Cadastrar Área Comum</h3>
-                            <div class="form-group"><input type="text" v-model="newSpace.name" class="form-control" placeholder="Nome (Ex: Piscina)"></div>
-                            <div class="form-group"><input type="number" v-model="newSpace.capacity" class="form-control" placeholder="Capacidade"></div>
-                            <div class="form-group"><input type="text" v-model="newSpace.rules" class="form-control" placeholder="Regras"></div>
-                            
-                            <div class="form-group">
-                                <label class="form-label">Foto da Área</label>
-                                <div class="file-upload-box" @click="$refs.fileInput.click()">
-                                    <i class="material-icons" style="font-size: 30px; color: #ccc;">add_a_photo</i>
-                                    <div v-if="!newSpace.image">Clique para enviar foto</div>
-                                    <div v-else style="color: green;">Foto selecionada!</div>
-                                </div>
-                                <input type="file" ref="fileInput" @change="handleImageUpload" accept="image/*" style="display: none;">
-                            </div>
-
-                            <button class="btn btn-primary" @click="addSpace" style="width: 100%;">Salvar Área</button>
-                        </div>
-
-                        <h3>Pendências</h3>
-                        <div v-if="pendingReservations.length === 0" style="color: #999;">Nada pendente.</div>
+                        
+                        <h3>Aprovações Pendentes</h3>
+                        <div v-if="pendingReservations.length === 0" style="color: #999; margin-bottom: 20px;">Nada pendente.</div>
                         <div v-for="res in pendingReservations" :key="res.id" class="card" style="border-left: 4px solid orange;">
                             <strong>{{ getSpaceName(res.spaceId) }}</strong>
                             <div>{{ res.userName }} - {{ formatDate(res.date) }}</div>
@@ -249,6 +236,49 @@
                                 <button class="btn btn-danger btn-sm" style="flex: 1;" @click="updateStatus(res.id, 'rejected')">Rejeitar</button>
                             </div>
                         </div>
+
+                        <h3>Próximas Ocupações (Agenda)</h3>
+                        <div v-if="approvedReservations.length === 0" style="color: #999; margin-bottom: 20px;">Nenhuma ocupação futura.</div>
+                        <div v-for="res in approvedReservations" :key="res.id" class="card" :style="{ borderLeft: res.status === 'maintenance' ? '4px solid #757575' : '4px solid #4CAF50' }">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>{{ getSpaceName(res.spaceId) }}</strong>
+                                <span class="badge" :class="res.status">{{ res.status === 'maintenance' ? 'BLOQUEIO' : 'RESERVADO' }}</span>
+                            </div>
+                            <div style="font-size: 0.9rem;">
+                                <i class="material-icons" style="font-size: 14px;">calendar_today</i> {{ formatDate(res.date) }}<br>
+                                <i class="material-icons" style="font-size: 14px;">person</i> {{ res.userName }}<br>
+                                <span v-if="res.status === 'maintenance'" style="color: #666; font-style: italic;">Motivo: {{ res.reason }}</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <h3>Ferramentas</h3>
+                            <div class="card" style="background: #E3F2FD; border: 1px solid #BBDEFB;">
+                                <h3>QR Code de Acesso</h3>
+                                <p style="font-size: 0.8rem;">Código: <b>{{ currentUser.condoId }}</b></p>
+                                <div style="text-align: center; background: white; padding: 10px; border-radius: 8px; margin-top: 10px;">
+                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=' + getRegistrationLink()" alt="QR Code">
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <h3>Cadastrar Área Comum</h3>
+                                <div class="form-group"><input type="text" v-model="newSpace.name" class="form-control" placeholder="Nome (Ex: Piscina)"></div>
+                                <div class="form-group"><input type="number" v-model="newSpace.capacity" class="form-control" placeholder="Capacidade"></div>
+                                <div class="form-group"><input type="text" v-model="newSpace.rules" class="form-control" placeholder="Regras"></div>
+                                <div class="form-group">
+                                    <label class="form-label">Foto da Área</label>
+                                    <div class="file-upload-box" @click="$refs.fileInput.click()">
+                                        <i class="material-icons" style="font-size: 30px; color: #ccc;">add_a_photo</i>
+                                        <div v-if="!newSpace.image">Clique para enviar foto</div>
+                                        <div v-else style="color: green;">Foto selecionada!</div>
+                                    </div>
+                                    <input type="file" ref="fileInput" @change="handleImageUpload" accept="image/*" style="display: none;">
+                                </div>
+                                <button class="btn btn-primary" @click="addSpace" style="width: 100%;">Salvar Área</button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -272,20 +302,41 @@
 
         <div class="modal-overlay" v-if="showCondoModal" @click.self="showCondoModal = false">
             <div class="modal-content">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <i class="material-icons" style="font-size: 40px; color: var(--super);">domain</i>
-                    <h3>Novo Cliente SaaS</h3>
-                </div>
+                <h3>Novo Cliente SaaS</h3>
                 <div class="form-group"><label class="form-label">Nome do Condomínio</label><input type="text" v-model="newCondo.name" class="form-control"></div>
                 <div class="form-group"><label class="form-label">Endereço</label><input type="text" v-model="newCondo.address" class="form-control"></div>
                 <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
                 <h4 style="margin-bottom: 10px;">Síndico Inicial</h4>
+                <div class="form-group"><label class="form-label">Nome do Síndico</label><input type="text" v-model="newCondo.syndicName" class="form-control"></div>
                 <div class="form-group"><label class="form-label">E-mail de Acesso</label><input type="email" v-model="newCondo.syndicEmail" class="form-control"></div>
                 <div class="form-group"><label class="form-label">Senha Provisória</label><input type="text" v-model="newCondo.syndicPassword" class="form-control"></div>
                 
                 <div style="text-align: right; margin-top: 20px;">
                     <button class="btn btn-outline" @click="showCondoModal = false">Cancelar</button>
                     <button class="btn btn-super" @click="createCondo">Cadastrar Cliente</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" v-if="showBlockModal" @click.self="showBlockModal = false">
+            <div class="modal-content">
+                <h3>Bloquear {{ selectedSpace?.name }}</h3>
+                <p style="color: #666; font-size: 0.9rem;">Selecione o período de manutenção/indisponibilidade.</p>
+                <div class="form-group">
+                    <label>Data Início</label>
+                    <input type="date" v-model="form.date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Data Fim (Inclusive)</label>
+                    <input type="date" v-model="form.endDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Motivo</label>
+                    <input type="text" v-model="form.reason" class="form-control" placeholder="Ex: Reforma">
+                </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-outline" @click="showBlockModal = false">Cancelar</button> 
+                    <button class="btn btn-danger" @click="confirmBlock">Confirmar Bloqueio</button>
                 </div>
             </div>
         </div>
@@ -326,6 +377,7 @@
                 // Modals & Forms
                 const showModal = ref(false);
                 const showCondoModal = ref(false);
+                const showBlockModal = ref(false);
                 const selectedSpace = ref(null);
                 
                 const authForm = ref({ email: '', password: '' });
@@ -335,9 +387,8 @@
                 
                 const newCondo = ref({});
                 const newSpace = ref({ name: '', capacity: '', rules: '', image: '' });
-                const form = ref({ date: '', time: '13:00 - 17:00' });
+                const form = ref({ date: '', endDate: '', time: '13:00 - 17:00', reason: '' });
 
-                // Mock Data for Dashboard
                 const totalUsersMock = ref(150);
 
                 // --- INICIALIZAÇÃO ---
@@ -355,7 +406,7 @@
                             currentUser.value = { uid: user.uid, email: user.email, ...data };
                             if (data.type === 'superuser') {
                                 loadSuperData();
-                                nextTick(() => renderChart()); // Renderiza gráfico
+                                nextTick(() => renderChart());
                             } else {
                                 loadCondoData(data.condoId);
                             }
@@ -367,7 +418,7 @@
                     }
                 });
 
-                // --- CARREGAMENTO DE DADOS ---
+                // --- DATA ---
                 const loadCondoData = async (condoId) => {
                     const cDoc = await getDoc(doc(db, "condominios", condoId));
                     if (cDoc.exists()) condoName.value = cDoc.data().name;
@@ -379,56 +430,36 @@
                     onSnapshot(collection(db, "condominios"), (snap) => condoList.value = snap.docs.map(d => ({ id: d.id, ...d.data() })));
                 };
 
-                // --- CHART JS (Dashboard) ---
                 const renderChart = () => {
                     const ctx = document.getElementById('growthChart');
                     if(ctx) {
                         new Chart(ctx, {
                             type: 'line',
-                            data: {
-                                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
-                                datasets: [{
-                                    label: 'Novos Condomínios',
-                                    data: [1, 2, 2, 4, 5, 8],
-                                    borderColor: '#6200EA',
-                                    tension: 0.4
-                                }]
-                            }
+                            data: { labels: ['Jan', 'Fev', 'Mar', 'Abr'], datasets: [{ label: 'Clientes', data: [1, 2, 4, 8], borderColor: '#6200EA', tension: 0.4 }] }
                         });
                     }
                 };
 
-                // --- UPLOAD DE IMAGEM (Base64) ---
+                // --- ACTIONS ---
                 const handleImageUpload = (event) => {
                     const file = event.target.files[0];
-                    if (!file) return;
-                    
-                    // Validação de Tamanho (Max 400KB para não travar o Firestore Grátis)
-                    if (file.size > 400 * 1024) {
-                        alert("A imagem deve ter no máximo 400KB.");
-                        return;
-                    }
-
+                    if (!file || file.size > 400 * 1024) { alert("Max 400KB"); return; }
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        newSpace.value.image = e.target.result; // Salva a string Base64
-                        showToast("Foto carregada com sucesso!");
-                    };
+                    reader.onload = (e) => { newSpace.value.image = e.target.result; showToast("Foto ok!"); };
                     reader.readAsDataURL(file);
                 };
 
-                // --- ACTIONS ---
                 const handleLogin = async () => {
                     loading.value = true;
                     try { await signInWithEmailAndPassword(auth, authForm.value.email, authForm.value.password); }
-                    catch (e) { showToast("Login incorreto", "error"); } finally { loading.value = false; }
+                    catch (e) { showToast("Erro no login", "error"); } finally { loading.value = false; }
                 };
 
                 const handleRegister = async () => {
                     loading.value = true;
                     try {
                         const condoCheck = await getDoc(doc(db, "condominios", regForm.value.condoId));
-                        if (!condoCheck.exists()) throw new Error("Condomínio não encontrado");
+                        if (!condoCheck.exists()) throw new Error("Condomínio inválido");
                         const cred = await createUserWithEmailAndPassword(auth, regForm.value.email, regForm.value.password);
                         await setDoc(doc(db, "users", cred.user.uid), {
                             name: regForm.value.name, apartment: regForm.value.apartment, type: 'resident', condoId: regForm.value.condoId, email: regForm.value.email
@@ -438,11 +469,22 @@
                 };
 
                 const createCondo = async () => {
-                    if(!newCondo.value.name || !newCondo.value.syndicEmail) return alert("Preencha todos os campos");
+                    if(!newCondo.value.name || !newCondo.value.syndicEmail) return alert("Preencha tudo");
                     try {
-                        const cRef = await addDoc(collection(db, "condominios"), { name: newCondo.value.name, address: newCondo.value.address, createdAt: new Date().toISOString() });
+                        // Salva nome do sindico no condominio tambem para exibir na lista do Super User
+                        const cRef = await addDoc(collection(db, "condominios"), { 
+                            name: newCondo.value.name, 
+                            address: newCondo.value.address, 
+                            syndicName: newCondo.value.syndicName, // <--- NOVO
+                            createdAt: new Date().toISOString() 
+                        });
                         const cred = await createUserWithEmailAndPassword(auth, newCondo.value.syndicEmail, newCondo.value.syndicPassword);
-                        await setDoc(doc(db, "users", cred.user.uid), { name: "Síndico", email: newCondo.value.syndicEmail, type: 'syndic', condoId: cRef.id });
+                        await setDoc(doc(db, "users", cred.user.uid), { 
+                            name: newCondo.value.syndicName, 
+                            email: newCondo.value.syndicEmail, 
+                            type: 'syndic', 
+                            condoId: cRef.id 
+                        });
                         alert("Condomínio Cadastrado!");
                         window.location.reload();
                     } catch(e) { showToast(e.message, "error"); }
@@ -467,6 +509,39 @@
                     } catch(e) { showToast("Erro", "error"); }
                 };
 
+                const confirmBlock = async () => {
+                    if(!form.value.date || !form.value.endDate) return alert("Selecione data início e fim");
+                    const start = new Date(form.value.date);
+                    const end = new Date(form.value.endDate);
+                    
+                    if(end < start) return alert("Data fim deve ser maior que início");
+                    
+                    loading.value = true;
+                    try {
+                        let loop = new Date(start);
+                        const batch = [];
+                        
+                        while(loop <= end) {
+                             const dt = loop.toISOString().split('T')[0];
+                             // Add individual records for simplicity in calendar rendering
+                             await addDoc(collection(db, "reservations"), {
+                                condoId: currentUser.value.condoId,
+                                spaceId: selectedSpace.value.id,
+                                userId: currentUser.value.uid,
+                                userName: "BLOQUEIO",
+                                date: dt,
+                                time: "DIA TODO",
+                                status: 'maintenance',
+                                reason: form.value.reason
+                             });
+                             loop.setDate(loop.getDate() + 1);
+                        }
+                        showBlockModal.value = false;
+                        showToast("Período Bloqueado!");
+                    } catch(e) { showToast("Erro", "error"); }
+                    finally { loading.value = false; }
+                };
+
                 // Helpers
                 const logout = () => signOut(auth);
                 const showToast = (m,t) => { toasts.value.push({message:m, type:t}); setTimeout(()=>toasts.value.shift(),3000); };
@@ -479,6 +554,15 @@
                 // Computed
                 const myReservations = computed(() => reservations.value.filter(r => r.userId === currentUser.value?.uid));
                 const pendingReservations = computed(() => reservations.value.filter(r => r.status === 'pending'));
+                
+                // Lista de ocupações confirmadas para o Síndico (Agenda)
+                const approvedReservations = computed(() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    return reservations.value
+                        .filter(r => (r.status === 'approved' || r.status === 'maintenance') && r.date >= today)
+                        .sort((a,b) => new Date(a.date) - new Date(b.date));
+                });
+
                 const currentDate = ref(new Date());
                 const monthLabel = computed(() => currentDate.value.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }));
                 const daysInMonth = computed(() => new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0).getDate());
@@ -494,8 +578,11 @@
                 return {
                     authForm, regForm, isRegistering, handleLogin, handleRegister, hasUrlCode, currentUser, condoName, loading, toasts, currentView, spaces, reservations, condoList,
                     newCondo, newSpace, createCondo, addSpace, handleImageUpload,
-                    showModal, showCondoModal, selectedSpace, form, openBookingModal: (s) => { selectedSpace.value=s; showModal.value=true; }, confirmBooking,
-                    myReservations, pendingReservations, updateStatus, deleteReservation,
+                    showModal, showCondoModal, showBlockModal, selectedSpace, form, 
+                    openBookingModal: (s) => { selectedSpace.value=s; showModal.value=true; }, 
+                    openBlockModal: (s) => { selectedSpace.value=s; form.value.date = ''; form.value.endDate = ''; showBlockModal.value=true; },
+                    confirmBooking, confirmBlock,
+                    myReservations, pendingReservations, approvedReservations, updateStatus, deleteReservation,
                     monthLabel, daysInMonth, paddingDays, changeMonth, isToday, getReservationsForDay, getStatusColor, getSpaceName, formatDate, getRegistrationLink, logout, totalUsersMock
                 };
             }
