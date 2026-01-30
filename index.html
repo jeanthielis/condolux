@@ -75,11 +75,15 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; color: #999; font-size: 0.7rem; cursor: pointer; }
         .nav-item.active { color: var(--primary); transform: translateY(-2px); }
         .hidden { display: none; }
+        
+        #loading-screen { position: fixed; inset: 0; background: #fff; z-index: 9999; display: flex; align-items: center; justify-content: center; font-family: sans-serif; }
     </style>
 </head>
 <body>
 
-    <div id="app">
+    <div id="loading-screen">Carregando Sistema...</div>
+
+    <div id="app" style="display: none;">
         <div class="toast-container">
             <div v-for="(t, i) in toasts" :key="i" class="toast" :class="t.type">
                 <i class="material-icons">{{ t.type === 'success' ? 'check_circle' : 'error' }}</i>
@@ -323,9 +327,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // NOTA: STORAGE REMOVIDO PARA EVITAR ERROS. USANDO BASE64.
 
-        // MANTENHA SUAS CHAVES AQUI
+        // CHAVES DO USUÁRIO
+        const EMAIL_PUBLIC_KEY = "YUkpAHaDZ8R5SJveC"; 
+        const EMAIL_SERVICE_ID = "service_xk0afvt";
+        const EMAIL_TEMPLATE_ID = "template_i3smkw1";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
             authDomain: "condosaas-app.firebaseapp.com",
@@ -338,11 +345,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // 2. EMAIL CONFIG (EmailJS) - Configure em emailjs.com e cole aqui
-        const EMAIL_PUBLIC_KEY = "YUkpAHaDZ8R5SJveC"; 
-        const EMAIL_SERVICE_ID = "service_xk0afvt";
-        const EMAIL_TEMPLATE_ID = "template_i3smkw1";
 
         createApp({
             setup() {
@@ -368,9 +370,11 @@
                 const newSpace = ref({ name: '', capacity: '', rules: '', image: '', price: '' });
                 const form = ref({ date: '', endDate: '', time: '13:00 - 17:00', reason: '' });
 
-                // Init EmailJS
+                // Inicialização
                 onMounted(() => {
-                    emailjs.init(EMAIL_PUBLIC_KEY);
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    try { emailjs.init(EMAIL_PUBLIC_KEY); } catch(e) { console.error("EmailJS error", e); }
                     const urlParams = new URLSearchParams(window.location.search);
                     const code = urlParams.get('code');
                     if (code) { isRegistering.value = true; regForm.value.condoId = code; hasUrlCode.value = true; }
@@ -378,13 +382,17 @@
 
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
-                        const userDoc = await getDoc(doc(db, "users", user.uid));
-                        if (userDoc.exists()) {
-                            const data = userDoc.data();
-                            currentUser.value = { uid: user.uid, email: user.email, ...data };
-                            if (data.type === 'superuser') loadSuperData();
-                            else loadCondoData(data.condoId);
-                        }
+                        try {
+                            const userDoc = await getDoc(doc(db, "users", user.uid));
+                            if (userDoc.exists()) {
+                                const data = userDoc.data();
+                                currentUser.value = { uid: user.uid, email: user.email, ...data };
+                                if (data.type === 'superuser') {
+                                    loadSuperData();
+                                    nextTick(() => renderChart());
+                                } else loadCondoData(data.condoId);
+                            }
+                        } catch(e) { console.error("Erro Auth DB:", e); }
                     } else { currentUser.value = null; spaces.value = []; reservations.value = []; }
                 });
 
@@ -399,38 +407,46 @@
                     onSnapshot(collection(db, "condominios"), (snap) => condoList.value = snap.docs.map(d => ({ id: d.id, ...d.data() })));
                 };
 
-                // 3. BASE64 UPLOAD (Substituto do Storage)
+                const renderChart = () => {
+                    if (!window.Chart) return;
+                    // ... Lógica de gráfico (opcional)
+                };
+
                 const handleImageUpload = (event) => {
                     const file = event.target.files[0];
                     if (!file) return;
-                    if (file.size > 500 * 1024) { alert("Máximo 500KB por imagem."); return; }
-                    
+                    if (file.size > 500 * 1024) { alert("Máximo 500KB."); return; }
                     const reader = new FileReader();
-                    reader.onload = (e) => {
-                        newSpace.value.image = e.target.result; // Salva string Base64 direto
-                        showToast("Foto processada!");
-                    };
+                    reader.onload = (e) => { newSpace.value.image = e.target.result; showToast("Foto ok!"); };
                     reader.readAsDataURL(file);
                 };
 
-                // 4. NOTIFICAÇÕES (EMAIL)
                 const sendEmail = (emailTo, nameTo, status, spaceName, date) => {
-                    if (!emailTo) return console.log("Sem email para notificar");
-                    
+                    if (!window.emailjs) return;
                     emailjs.send(EMAIL_SERVICE_ID, EMAIL_TEMPLATE_ID, {
-                        to_email: emailTo, 
-                        to_name: nameTo, 
-                        status: status, 
-                        space: spaceName, 
-                        date: date
-                    }).then(() => console.log("Email enviado para", emailTo)).catch(e => console.error("Erro EmailJS:", e));
+                        to_email: emailTo, to_name: nameTo, status: status, space: spaceName, date: date
+                    }).catch(e => console.error(e));
                 };
 
                 // ACTIONS
                 const handleLogin = async () => {
                     loading.value = true;
                     try { await signInWithEmailAndPassword(auth, authForm.value.email, authForm.value.password); }
-                    catch (e) { showToast("Erro no login", "error"); } finally { loading.value = false; }
+                    catch (e) { showToast("Erro login", "error"); } finally { loading.value = false; }
+                };
+
+                // A FUNÇÃO QUE FALTAVA
+                const handleRegister = async () => {
+                    loading.value = true;
+                    try {
+                        const condoCheck = await getDoc(doc(db, "condominios", regForm.value.condoId));
+                        if (!condoCheck.exists()) throw new Error("Condomínio não encontrado");
+                        const cred = await createUserWithEmailAndPassword(auth, regForm.value.email, regForm.value.password);
+                        await setDoc(doc(db, "users", cred.user.uid), {
+                            name: regForm.value.name, apartment: regForm.value.apartment, type: 'resident', condoId: regForm.value.condoId, email: regForm.value.email
+                        });
+                        showToast("Conta criada!", "success");
+                    } catch (e) { showToast(e.message, "error"); } finally { loading.value = false; }
                 };
 
                 const createCondo = async () => {
@@ -447,7 +463,7 @@
                     if(!newSpace.value.name) return alert("Nome obrigatório");
                     try {
                         await addDoc(collection(db, "spaces"), { ...newSpace.value, condoId: currentUser.value.condoId });
-                        showToast("Área salva!"); newSpace.value = { name: '', capacity: '', rules: '', image: '', price: '' };
+                        showToast("Salvo!"); newSpace.value = { name: '', capacity: '', rules: '', image: '', price: '' };
                     } catch(e) { showToast("Erro", "error"); }
                 };
 
@@ -455,15 +471,8 @@
                     try {
                         const price = selectedSpace.value.price || 0;
                         await addDoc(collection(db, "reservations"), {
-                            condoId: currentUser.value.condoId, 
-                            spaceId: selectedSpace.value.id, 
-                            userId: currentUser.value.uid,
-                            userName: currentUser.value.name, 
-                            userEmail: currentUser.value.email, // Salva o email!
-                            date: form.value.date, 
-                            time: form.value.time, 
-                            status: 'pending', 
-                            price: price
+                            condoId: currentUser.value.condoId, spaceId: selectedSpace.value.id, userId: currentUser.value.uid,
+                            userName: currentUser.value.name, userEmail: currentUser.value.email, date: form.value.date, time: form.value.time, status: 'pending', price: price
                         });
                         showModal.value = false; showToast("Solicitado!");
                     } catch(e) { showToast("Erro", "error"); }
@@ -471,10 +480,7 @@
 
                 const updateStatus = async (res, status) => {
                     await updateDoc(doc(db, "reservations", res.id), { status });
-                    // Dispara Email
-                    if(res.userEmail) {
-                        sendEmail(res.userEmail, res.userName, status === 'approved' ? 'Aprovada' : 'Rejeitada', getSpaceName(res.spaceId), res.date);
-                    }
+                    if(res.userEmail) sendEmail(res.userEmail, res.userName, status === 'approved' ? 'Aprovada' : 'Rejeitada', getSpaceName(res.spaceId), res.date);
                     showToast(`Reserva ${status}!`);
                 };
 
@@ -502,21 +508,11 @@
                 const formatDate = (d) => d?.split('-').reverse().join('/');
                 const deleteReservation = async (id) => { if(confirm("Apagar?")) await deleteDoc(doc(db, "reservations", id)); };
                 const getRegistrationLink = () => window.location.href.split('?')[0] + `?code=${currentUser.value.condoId}`;
-                
-                // Computed
                 const myReservations = computed(() => reservations.value.filter(r => r.userId === currentUser.value?.uid));
                 const pendingReservations = computed(() => reservations.value.filter(r => r.status === 'pending'));
                 const paidReservations = computed(() => reservations.value.filter(r => r.status === 'approved' && r.price > 0));
-                
-                // Financeiro
-                const totalReceivables = computed(() => {
-                    return reservations.value
-                        .filter(r => r.status === 'approved' && r.price)
-                        .reduce((acc, curr) => acc + Number(curr.price), 0);
-                });
+                const totalReceivables = computed(() => reservations.value.filter(r => r.status === 'approved' && r.price).reduce((acc, curr) => acc + Number(curr.price), 0));
                 const totalMRR = computed(() => condoList.value.length * 150); 
-
-                // Calendar
                 const currentDate = ref(new Date());
                 const monthLabel = computed(() => currentDate.value.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }));
                 const daysInMonth = computed(() => new Date(currentDate.value.getFullYear(), currentDate.value.getMonth() + 1, 0).getDate());
