@@ -19,23 +19,30 @@ createApp({
         const form = ref({ date: '', time: '08:00 - 12:00', reason: '' });
 
         onMounted(() => {
-            document.getElementById('loading-screen').style.display = 'none';
-            try { if(window.emailjs) emailjs.init(EMAIL_CONFIG.PUBLIC_KEY); } catch(e){}
+                    // Tira a tela de carregamento
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
 
-            // Verifica Código URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            
-            if (code) {
-                // Logout forçado se tiver código de convite
-                AuthService.logout().then(() => {
-                    authCtrl.isRegistering.value = true;
-                    authCtrl.regForm.value.condoId = code;
-                    authCtrl.hasUrlCode.value = true;
-                    store.currentUser = null;
+                    // Inicializa EmailJS (se tiver)
+                    try { emailjs.init(EMAIL_PUBLIC_KEY); } catch(e) {}
+                    
+                    // --- AQUI COMEÇA A CORREÇÃO ---
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const code = urlParams.get('code');
+                    
+                    // Se tiver código na URL, DESLOGA o usuário atual para evitar conflito
+                    if (code) {
+                        console.log("Código de convite detectado. Forçando logout...");
+                        signOut(auth).then(() => {
+                            // Ativa o modo de registro
+                            isRegistering.value = true;
+                            regForm.value.condoId = code;
+                            hasUrlCode.value = true;
+                            currentUser.value = null; // Limpa o usuário da memória visual
+                        });
+                    }
+                    // --- FIM DA CORREÇÃO ---
                 });
-            }
-        });
 
         onAuthStateChanged(auth, async (user) => {
             if (authCtrl.hasUrlCode.value) return; 
