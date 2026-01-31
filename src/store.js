@@ -5,6 +5,8 @@ export const store = reactive({
     currentView: 'calendar',
     loading: false,
     toasts: [],
+    
+    // Dados
     condoName: '',
     condoList: [],
     spaces: [],
