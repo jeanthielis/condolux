@@ -67,18 +67,13 @@ export function useAdmin() {
         r.readAsDataURL(f);
     };
 
-    
+    const getRegistrationLink = () => window.location.href.split('?')[0] + `?code=${store.currentUser?.condoId}`;
 
-    const getRegistrationLink = () => {
-        // Pega a URL base (ex: https://seusite.com/)
-        const baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/'));
-        
-        // Aponta para o novo arquivo separado
-        return `${baseUrl}/cadastro.html?code=${store.currentUser?.condoId}`;
-    };
-
+    // Exportar tudo que o HTML vai usar
     return { 
-        // ... retornos ...
-        getRegistrationLink 
+        newCondo, newSpace, showCondoModal, 
+        createCondo, toggleCondoStatus, 
+        addSpace, handleImageUpload, 
+        totalMRR, getRegistrationLink 
     };
 }
