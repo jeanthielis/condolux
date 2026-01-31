@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CondoSaas | Convite</title>
+    
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
 <body>
@@ -15,28 +17,50 @@
             <div class="auth-box" style="height: auto; min-height: 550px;">
                 <div class="auth-banner">
                     <div class="brand-hero"><i class="material-icons-round">vpn_key</i><h1>Acesso Morador</h1></div>
-                    <p style="margin-top: 15px; opacity: 0.9;">Você foi convidado para o condomínio:</p>
-                    <h3 v-if="condoName" style="margin-top: 10px; color:white;">{{ condoName }}</h3>
+                    <p style="margin-top: 15px; opacity: 0.9;">Você foi convidado para o condomínio.</p>
+                    <div v-if="condoName" style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 12px; margin-top: 20px;">
+                        <small>Condomínio:</small><br><strong>{{ condoName }}</strong>
+                    </div>
                 </div>
                 <div class="auth-content">
                     <form @submit.prevent="handleRegister" class="auth-form animate-fade">
-                        <div class="header-text"><h2>Criar Acesso</h2><p>Preencha seus dados.</p></div>
-                        <div class="input-group"><label>Código</label><input type="text" :value="condoId" readonly class="modern-input" style="background:#EEF2FF; font-weight:700; color:var(--primary);"></div>
-                        <div class="row-2"><div class="input-group"><label>Nome</label><input type="text" v-model="form.name" required class="modern-input"></div><div class="input-group"><label>Unidade</label><input type="text" v-model="form.apartment" required class="modern-input"></div></div>
-                        <div class="input-group"><label>E-mail</label><input type="email" v-model="form.email" required class="modern-input"></div>
-                        <div class="input-group"><label>Senha</label><input type="password" v-model="form.password" required class="modern-input"></div>
-                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Criando...' : 'Finalizar' }}</button>
+                        <div class="section-title" style="margin-bottom: 30px;">
+                            <div><h2>Criar Acesso</h2><p style="color:var(--text-muted)">Finalize seu cadastro.</p></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label>Código do Condomínio</label>
+                            <div class="input-icon-wrapper">
+                                <input type="text" :value="condoId" readonly class="modern-input" style="background-color: #EEF2FF; border-color: #4F46E5; color: #4F46E5; font-weight: 700;">
+                                <i class="material-icons-round" style="position: absolute; right: 15px; top: 14px; color: #4F46E5;">lock</i>
+                            </div>
+                        </div>
+
+                        <div class="row-2">
+                            <div class="input-group"><label>Nome</label><input type="text" v-model="form.name" required class="modern-input" placeholder="Seu nome"></div>
+                            <div class="input-group"><label>Unidade</label><input type="text" v-model="form.apartment" required class="modern-input" placeholder="Apto 101"></div>
+                        </div>
+                        
+                        <div class="input-group"><label>E-mail</label><input type="email" v-model="form.email" required class="modern-input" placeholder="seu@email.com"></div>
+                        <div class="input-group"><label>Senha</label><input type="password" v-model="form.password" required class="modern-input" placeholder="Mínimo 6 caracteres" minlength="6"></div>
+                        
+                        <button type="submit" class="btn btn-primary w-100" :disabled="loading" style="padding: 16px;">
+                            {{ loading ? 'Criando conta...' : 'Finalizar Cadastro' }}
+                        </button>
+
+                        <div class="auth-footer"><a href="index.html">Já tenho conta (Login)</a></div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { EMAIL_CONFIG } from './src/config.js'; // Importa config se possível, ou repete
-
+        
+        // REPETIR CONFIG AQUI PARA GARANTIR ISOLAMENTO
         const firebaseConfig = {
             apiKey: "AIzaSyDeWvVtINqz07UK-iCZwG8-rfBJN7insDM",
             authDomain: "condosaas-app.firebaseapp.com",
@@ -45,9 +69,11 @@
             messagingSenderId: "1094942324011",
             appId: "1:1094942324011:web:49293ce94269e71807416e"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
         const { createApp, ref, onMounted } = Vue;
 
         createApp({
@@ -60,19 +86,26 @@
                 onMounted(async () => {
                     const code = new URLSearchParams(window.location.search).get('code');
                     if (!code) { alert("Link inválido!"); window.location.href = 'index.html'; return; }
-                    await signOut(auth);
+                    await signOut(auth); // Garante logout
                     condoId.value = code;
-                    try { const s = await getDoc(doc(db, "condominios", code)); if(s.exists()) condoName.value = s.data().name; } catch(e){}
+                    try { 
+                        const s = await getDoc(doc(db, "condominios", code)); 
+                        if(s.exists()) condoName.value = s.data().name; 
+                    } catch(e) { console.error(e); }
                 });
 
                 const handleRegister = async () => {
                     loading.value = true;
                     try {
-                        const c = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password);
-                        await setDoc(doc(db, "users", c.user.uid), { name: form.value.name, apartment: form.value.apartment, email: form.value.email, type: 'resident', condoId: condoId.value });
-                        alert("Sucesso!"); window.location.href = 'index.html';
-                    } catch(e) { alert(e.message); } finally { loading.value = false; }
+                        const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password);
+                        await setDoc(doc(db, "users", cred.user.uid), {
+                            name: form.value.name, apartment: form.value.apartment, email: form.value.email, type: 'resident', condoId: condoId.value
+                        });
+                        alert("Cadastro realizado!");
+                        window.location.href = 'index.html';
+                    } catch (e) { alert("Erro: " + e.message); } finally { loading.value = false; }
                 };
+
                 return { condoId, condoName, form, loading, handleRegister };
             }
         }).mount('#app');
