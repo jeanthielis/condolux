@@ -18,10 +18,8 @@ createApp({
         const selectedSpace = ref(null);
         const form = ref({ date: '', time: '08:00 - 12:00', reason: '' });
 
-        // --- CORREÇÃO AQUI (Lógica de Logout Forçado) ---
         onMounted(() => {
             document.getElementById('loading-screen').style.display = 'none';
-            document.getElementById('app').style.display = 'block';
             try { if(window.emailjs) emailjs.init(EMAIL_CONFIG.PUBLIC_KEY); } catch(e){}
 
             // Verifica Código URL
@@ -29,36 +27,33 @@ createApp({
             const code = urlParams.get('code');
             
             if (code) {
-                console.log("Código detectado. Forçando logout para registro...");
-                // 1. Força o logout se tiver código na URL
+                // Logout forçado se tiver código de convite
                 AuthService.logout().then(() => {
-                    // 2. Prepara o formulário de registro
                     authCtrl.isRegistering.value = true;
                     authCtrl.regForm.value.condoId = code;
                     authCtrl.hasUrlCode.value = true;
-                    store.currentUser = null; // Limpa usuário da memória visual
+                    store.currentUser = null;
                 });
             }
         });
 
-        // --- AUTH LISTENER (Com Trava de Segurança) ---
         onAuthStateChanged(auth, async (user) => {
-            // SE TIVER CÓDIGO DE CONVITE ATIVO, IGNORA O LOGIN ANTIGO
-            if (authCtrl.hasUrlCode.value) {
-                return; 
-            }
+            if (authCtrl.hasUrlCode.value) return; 
 
             if (user) {
                 try {
                     const profile = await AuthService.getUserProfile(user.uid);
                     if (profile) {
                         store.currentUser = { uid: user.uid, email: user.email, ...profile };
+                        
+                        // Redireciona visão baseada no papel
                         if (profile.type === 'superuser') {
+                            store.currentView = 'admin'; // Superuser não tem calendar
                             DataService.listenCondos((data) => {
                                 store.condoList = data;
-                                setTimeout(() => adminCtrl.renderChart(), 100);
                             });
                         } else {
+                            store.currentView = 'calendar';
                             initCondoData(profile.condoId);
                         }
                     }
@@ -74,13 +69,11 @@ createApp({
             DataService.listenReservations(condoId, (data) => store.reservations = data);
         };
 
-        // --- COMPUTED HELPERS ---
         const myReservations = computed(() => store.reservations.filter(r => r.userId === store.currentUser?.uid));
         const pendingReservations = computed(() => store.reservations.filter(r => r.status === 'pending'));
         const paidReservations = computed(() => store.reservations.filter(r => r.status === 'approved' && r.price > 0));
         const totalReceivables = computed(() => paidReservations.value.reduce((acc, curr) => acc + Number(curr.price), 0));
 
-        // --- RESERVAS ---
         const openBookingModal = (s) => { selectedSpace.value = s; showModal.value = true; };
         const openBlockModal = (s) => { selectedSpace.value = s; showBlockModal.value = true; };
         const closeAllModals = () => { showModal.value = false; adminCtrl.showCondoModal.value = false; showBlockModal.value = false; };
@@ -109,10 +102,7 @@ createApp({
 
         const updateStatus = async (res, status) => {
             await DataService.updateReservationStatus(res.id, status);
-            // Email logic (simulado se não configurado)
-            if(res.userEmail && window.emailjs) {
-               // ... email logic
-            }
+            if(res.userEmail && window.emailjs) emailjs.send(EMAIL_CONFIG.SERVICE_ID, EMAIL_CONFIG.TEMPLATE_ID, {to_email: res.userEmail, to_name: res.userName, status: status, space: getSpaceName(res.spaceId), date: res.date});
             store.addToast(`Reserva ${status}!`);
         };
         
@@ -123,21 +113,12 @@ createApp({
         const getTitle = () => ({'calendar':'Agenda', 'reservations':'Minhas Reservas', 'admin':'Admin', 'finance':'Financeiro'}[store.currentView] || 'Painel');
 
         return {
-            store,
-            currentUser: computed(() => store.currentUser),
-            currentView: computed({ get:()=>store.currentView, set:(v)=>store.currentView = v }),
-            condoName: computed(() => store.condoName),
-            toasts: computed(() => store.toasts),
-            loading: computed(() => store.loading),
-            spaces: computed(() => store.spaces),
-            condoList: computed(() => store.condoList),
+            store, currentUser: computed(() => store.currentUser), currentView: computed({ get:()=>store.currentView, set:(v)=>store.currentView = v }), condoName: computed(() => store.condoName), toasts: computed(() => store.toasts), loading: computed(() => store.loading), spaces: computed(() => store.spaces), condoList: computed(() => store.condoList),
             ...authCtrl,
             ...calendarCtrl,
-            ...adminCtrl,
-            showModal, showBlockModal, selectedSpace, form, 
-            openBookingModal, openBlockModal, closeAllModals, confirmBooking, confirmBlock, updateStatus, deleteReservation,
-            myReservations, pendingReservations, paidReservations, totalReceivables, 
-            getSpaceName, formatDate, getStatusColor, getTitle
+            ...adminCtrl, // Importante: aqui exportamos as funções do admin
+            showModal, showBlockModal, selectedSpace, form, openBookingModal, openBlockModal, closeAllModals, confirmBooking, confirmBlock, updateStatus, deleteReservation,
+            myReservations, pendingReservations, paidReservations, totalReceivables, getSpaceName, formatDate, getStatusColor, getTitle
         };
     }
 }).mount('#app');

@@ -34,44 +34,19 @@
         <div v-if="!currentUser" class="auth-wrapper">
             <div class="auth-box">
                 <div class="auth-banner">
-                    <div class="brand-hero">
-                        <i class="material-icons-round">domain_add</i>
-                        <h1>CondoSaas</h1>
-                    </div>
+                    <div class="brand-hero"><i class="material-icons-round">domain_add</i><h1>CondoSaas</h1></div>
                     <p>Gestão condominial inteligente e descomplicada.</p>
                 </div>
-                
                 <div class="auth-content">
                     <form v-if="!isRegistering" @submit.prevent="handleLogin" class="auth-form animate-fade">
-                        <div class="header-text">
-                            <h2>Bem-vindo</h2>
-                            <p>Acesse sua conta para gerenciar.</p>
-                        </div>
-                        
-                        <div class="input-group">
-                            <label>E-mail</label>
-                            <input type="email" v-model="authForm.email" required placeholder="ex: usuario@email.com" class="modern-input">
-                        </div>
-                        <div class="input-group">
-                            <label>Senha</label>
-                            <input type="password" v-model="authForm.password" required placeholder="••••••••" class="modern-input">
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">
-                            {{ loading ? 'Entrando...' : 'Acessar Plataforma' }}
-                        </button>
-                        
-                        <div class="auth-footer">
-                            <a href="#" @click.prevent="isRegistering = true">Criar uma nova conta</a>
-                        </div>
+                        <div class="header-text"><h2>Bem-vindo</h2><p>Acesse sua conta para gerenciar.</p></div>
+                        <div class="input-group"><label>E-mail</label><input type="email" v-model="authForm.email" required class="modern-input"></div>
+                        <div class="input-group"><label>Senha</label><input type="password" v-model="authForm.password" required class="modern-input"></div>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Entrando...' : 'Acessar' }}</button>
+                        <div class="auth-footer"><a href="#" @click.prevent="isRegistering = true">Criar uma nova conta</a></div>
                     </form>
-
                     <form v-else @submit.prevent="handleRegister" class="auth-form animate-fade">
-                        <div class="header-text">
-                            <h2>Criar Conta</h2>
-                            <p>Preencha os dados abaixo.</p>
-                        </div>
-                        
+                        <div class="header-text"><h2>Criar Conta</h2><p>Preencha os dados abaixo.</p></div>
                         <div class="input-group">
                             <label>Código do Condomínio</label>
                             <div class="input-icon-wrapper">
@@ -79,18 +54,13 @@
                                 <i v-if="hasUrlCode" class="material-icons-round text-success">check_circle</i>
                             </div>
                         </div>
-
                         <div class="row-2">
                             <div class="input-group"><label>Nome</label><input type="text" v-model="regForm.name" required class="modern-input"></div>
                             <div class="input-group"><label>Apto/Bloco</label><input type="text" v-model="regForm.apartment" required class="modern-input"></div>
                         </div>
-                        
                         <div class="input-group"><label>E-mail</label><input type="email" v-model="regForm.email" required class="modern-input"></div>
                         <div class="input-group"><label>Senha</label><input type="password" v-model="regForm.password" required class="modern-input"></div>
-                        
-                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">
-                            {{ loading ? 'Criando...' : 'Finalizar Cadastro' }}
-                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Criando...' : 'Finalizar' }}</button>
                         <div class="auth-footer"><a href="#" @click.prevent="isRegistering = false">Voltar ao Login</a></div>
                     </form>
                 </div>
@@ -106,28 +76,27 @@
                 </div>
                 
                 <nav class="nav-menu">
-                    <div class="nav-label">PRINCIPAL</div>
-                    <a href="#" class="nav-item" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'">
-                        <i class="material-icons-round">calendar_month</i> <span>Agenda</span>
-                    </a>
-                    <a href="#" class="nav-item" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'">
-                        <i class="material-icons-round">confirmation_number</i> <span>Minhas Reservas</span>
-                    </a>
-                    
-                    <div v-if="currentUser.type !== 'resident'" class="nav-label mt-4">GESTÃO</div>
-                    <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'">
-                        <i class="material-icons-round">account_balance_wallet</i> <span>Financeiro</span>
-                    </a>
-                    <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'">
-                        <i class="material-icons-round">grid_view</i> <span>Admin</span>
-                    </a>
+                    <div v-if="currentUser.type === 'superuser'">
+                        <div class="nav-label">PLATAFORMA</div>
+                        <a href="#" class="nav-item active"><i class="material-icons-round">analytics</i> <span>Visão Geral</span></a>
+                    </div>
+
+                    <div v-else>
+                        <div class="nav-label">PRINCIPAL</div>
+                        <a href="#" class="nav-item" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i> <span>Agenda</span></a>
+                        <a href="#" class="nav-item" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i> <span>Minhas Reservas</span></a>
+                        
+                        <div v-if="currentUser.type !== 'resident'" class="nav-label mt-4">GESTÃO</div>
+                        <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i> <span>Financeiro</span></a>
+                        <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i> <span>Admin</span></a>
+                    </div>
                 </nav>
 
                 <div class="user-pill">
                     <div class="avatar">{{ currentUser.name.charAt(0) }}</div>
                     <div class="user-meta">
                         <strong>{{ currentUser.name }}</strong>
-                        <span>{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : 'Morador') }}</span>
+                        <span>{{ currentUser.type === 'superuser' ? 'Admin Geral' : (currentUser.type === 'syndic' ? 'Síndico' : 'Morador') }}</span>
                     </div>
                     <button @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button>
                 </div>
@@ -139,8 +108,6 @@
                         <h1>{{ getTitle() }}</h1>
                         <span v-if="currentUser.type !== 'superuser'" class="condo-tag"><i class="material-icons-round">location_on</i> {{ condoName }}</span>
                     </div>
-                    <div class="header-actions">
-                        </div>
                 </header>
 
                 <div class="content-body">
@@ -155,15 +122,32 @@
                                 <div class="kpi-icon"><i class="material-icons-round">payments</i></div>
                                 <div><h3>R$ {{ totalMRR }}</h3><p>Receita Mensal</p></div>
                             </div>
+                            <div class="kpi-card">
+                                <div class="kpi-icon" style="background: #3B82F6;"><i class="material-icons-round">groups</i></div>
+                                <div><h3>{{ condoList.length * 45 }}</h3><p>Usuários Est.</p></div>
+                            </div>
                         </div>
+
                         <div class="section-title">
-                            <h3>Meus Clientes</h3>
-                            <button class="btn btn-primary btn-sm" @click="showCondoModal = true"><i class="material-icons-round">add</i> Novo</button>
+                            <h3>Gestão de Clientes</h3>
+                            <button class="btn btn-primary btn-sm" @click="showCondoModal = true"><i class="material-icons-round">add</i> Novo Cliente</button>
                         </div>
+
                         <div class="card no-padding">
                             <table class="modern-table">
-                                <thead><tr><th>Nome</th><th>Endereço</th><th>Síndico</th><th>Status</th></tr></thead>
-                                <tbody><tr v-for="c in condoList" :key="c.id"><td>{{ c.name }}</td><td>{{ c.address }}</td><td>{{ c.syndicName }}</td><td><span class="status active">Ativo</span></td></tr></tbody>
+                                <thead><tr><th>Condomínio</th><th>Síndico / Email</th><th>Status</th><th>Ações</th></tr></thead>
+                                <tbody>
+                                    <tr v-for="c in condoList" :key="c.id" :style="{ opacity: c.suspended ? 0.6 : 1 }">
+                                        <td><strong>{{ c.name }}</strong><br><small class="text-muted">{{ c.address }}</small></td>
+                                        <td>{{ c.syndicName }}<br><small class="text-muted">{{ c.syndicEmail || 'N/A' }}</small></td>
+                                        <td><span class="status-pill" :class="c.suspended ? 'pending' : 'approved'">{{ c.suspended ? 'SUSPENSO' : 'ATIVO' }}</span></td>
+                                        <td>
+                                            <button class="btn-icon-mini" :title="c.suspended ? 'Ativar' : 'Suspender'" @click="toggleCondoStatus(c)">
+                                                <i class="material-icons-round" :style="{ color: c.suspended ? 'green' : 'red' }">{{ c.suspended ? 'play_circle' : 'pause_circle' }}</i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -172,27 +156,20 @@
                         <div class="calendar-layout">
                             <div class="card calendar-widget">
                                 <div class="widget-header">
-                                    <button class="nav-btn" @click="changeMonth(-1)"><i class="material-icons-round">chevron_left</i></button>
-                                    <h3>{{ monthLabel }}</h3>
-                                    <button class="nav-btn" @click="changeMonth(1)"><i class="material-icons-round">chevron_right</i></button>
+                                    <button class="nav-btn" @click="changeMonth(-1)"><i class="material-icons-round">chevron_left</i></button><h3>{{ monthLabel }}</h3><button class="nav-btn" @click="changeMonth(1)"><i class="material-icons-round">chevron_right</i></button>
                                 </div>
                                 <div class="days-grid">
                                     <div class="d-head" v-for="d in ['Dom','Seg','Ter','Qua','Qui','Sex','Sab']">{{ d }}</div>
                                     <div v-for="n in paddingDays" class="d-cell empty"></div>
                                     <div v-for="day in daysInMonth" class="d-cell" :class="{ 'today': isToday(day) }" @click="selectDate(day)">
                                         <span>{{ day }}</span>
-                                        <div class="dots">
-                                            <div v-for="res in getReservationsForDay(day)" class="dot" :style="{ background: getStatusColor(res.status) }"></div>
-                                        </div>
+                                        <div class="dots"><div v-for="res in getReservationsForDay(day)" class="dot" :style="{ background: getStatusColor(res.status) }"></div></div>
                                     </div>
                                 </div>
                                 <div class="cal-legend">
-                                    <small><span class="dot-sample green"></span> Aprovado</small>
-                                    <small><span class="dot-sample blue"></span> Pendente</small>
-                                    <small><span class="dot-sample gray"></span> Bloqueio</small>
+                                    <small><span class="dot-sample green"></span> Aprovado</small><small><span class="dot-sample blue"></span> Pendente</small><small><span class="dot-sample gray"></span> Bloqueio</small>
                                 </div>
                             </div>
-
                             <div class="spaces-grid">
                                 <div v-for="space in spaces" :key="space.id" class="space-item">
                                     <div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500') +')'}">
@@ -213,77 +190,39 @@
 
                     <div v-if="currentView === 'reservations'" class="animate-fade">
                         <div v-if="myReservations.length === 0" class="empty-state">
-                            <div class="empty-img"><i class="material-icons-round">event_note</i></div>
-                            <h3>Nenhuma reserva</h3>
-                            <p>Suas reservas aparecerão aqui.</p>
+                            <div class="empty-img"><i class="material-icons-round">event_note</i></div><h3>Nenhuma reserva</h3><p>Suas reservas aparecerão aqui.</p>
                         </div>
                         <div class="tickets-list">
                             <div v-for="res in myReservations" :key="res.id" class="ticket-card">
-                                <div class="ticket-left">
-                                    <span class="day">{{ res.date.split('-')[2] }}</span>
-                                    <span class="month">{{ res.date.split('-')[1] }}</span>
-                                </div>
-                                <div class="ticket-mid">
-                                    <h4>{{ getSpaceName(res.spaceId) }}</h4>
-                                    <p>{{ res.time }}</p>
-                                    <span class="status-pill" :class="res.status">{{ res.status }}</span>
-                                </div>
-                                <div class="ticket-right" v-if="res.status === 'pending'">
-                                    <button class="btn-trash" @click="deleteReservation(res.id)"><i class="material-icons-round">delete</i></button>
-                                </div>
+                                <div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div>
+                                <div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill" :class="res.status">{{ res.status }}</span></div>
+                                <div class="ticket-right" v-if="res.status === 'pending'"><button class="btn-trash" @click="deleteReservation(res.id)"><i class="material-icons-round">delete</i></button></div>
                             </div>
                         </div>
                     </div>
 
                     <div v-if="currentView === 'admin' && currentUser.type === 'syndic'" class="animate-fade">
-                        
                         <div class="invite-banner">
-                            <div class="invite-txt">
-                                <h3>Convidar Moradores</h3>
-                                <p>Código do condomínio: <strong>{{ currentUser.condoId }}</strong></p>
-                                <div class="link-copy">
-                                    <input type="text" :value="getRegistrationLink()" readonly>
-                                </div>
-                            </div>
-                            <div class="qr-code-bg">
-                                <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + getRegistrationLink()" alt="QR">
-                            </div>
+                            <div class="invite-txt"><h3>Convidar Moradores</h3><p>Código: <strong>{{ currentUser.condoId }}</strong></p><div class="link-copy"><input type="text" :value="getRegistrationLink()" readonly></div></div>
+                            <div class="qr-code-bg"><img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + getRegistrationLink()" alt="QR"></div>
                         </div>
-
                         <div class="admin-columns">
                             <div class="card">
-                                <div class="card-title">
-                                    <h3>Aprovações</h3>
-                                    <span class="badge-count" v-if="pendingReservations.length">{{ pendingReservations.length }}</span>
-                                </div>
+                                <div class="card-title"><h3>Aprovações</h3><span class="badge-count" v-if="pendingReservations.length">{{ pendingReservations.length }}</span></div>
                                 <div class="approval-list">
                                     <div v-if="pendingReservations.length === 0" class="no-data">Tudo em dia!</div>
                                     <div v-for="res in pendingReservations" :key="res.id" class="approval-row">
-                                        <div class="user-info">
-                                            <strong>{{ getSpaceName(res.spaceId) }}</strong>
-                                            <span>{{ res.userName }} • {{ formatDate(res.date) }}</span>
-                                        </div>
-                                        <div class="actions">
-                                            <button class="btn-circle approve" @click="updateStatus(res, 'approved')"><i class="material-icons-round">check</i></button>
-                                            <button class="btn-circle reject" @click="updateStatus(res, 'rejected')"><i class="material-icons-round">close</i></button>
-                                        </div>
+                                        <div class="user-info"><strong>{{ getSpaceName(res.spaceId) }}</strong><span>{{ res.userName }} • {{ formatDate(res.date) }}</span></div>
+                                        <div class="actions"><button class="btn-circle approve" @click="updateStatus(res, 'approved')"><i class="material-icons-round">check</i></button><button class="btn-circle reject" @click="updateStatus(res, 'rejected')"><i class="material-icons-round">close</i></button></div>
                                     </div>
                                 </div>
                             </div>
-
                             <div class="card">
                                 <div class="card-title"><h3>Nova Área</h3></div>
                                 <div class="form-stack">
                                     <input type="text" v-model="newSpace.name" class="modern-input" placeholder="Nome">
-                                    <div class="row-2">
-                                        <input type="number" v-model="newSpace.capacity" class="modern-input" placeholder="Capacidade">
-                                        <input type="number" v-model="newSpace.price" class="modern-input" placeholder="Preço (R$)">
-                                    </div>
-                                    <label class="upload-btn">
-                                        <input type="file" @change="handleImageUpload" accept="image/*">
-                                        <i class="material-icons-round">cloud_upload</i>
-                                        <span>{{ newSpace.image ? 'Foto Pronta!' : 'Enviar Foto' }}</span>
-                                    </label>
+                                    <div class="row-2"><input type="number" v-model="newSpace.capacity" class="modern-input" placeholder="Capacidade"><input type="number" v-model="newSpace.price" class="modern-input" placeholder="Preço (R$)"></div>
+                                    <label class="upload-btn"><input type="file" @change="handleImageUpload" accept="image/*"><i class="material-icons-round">cloud_upload</i><span>{{ newSpace.image ? 'Foto Pronta!' : 'Enviar Foto' }}</span></label>
                                     <button class="btn btn-primary w-100" @click="addSpace">Salvar Área</button>
                                 </div>
                             </div>
@@ -291,33 +230,22 @@
                     </div>
 
                     <div v-if="currentView === 'finance'" class="animate-fade">
-                        <div class="finance-card">
-                            <small>Receita Pendente</small>
-                            <h2>R$ {{ totalReceivables }}</h2>
-                            <div class="trend"><i class="material-icons-round">trending_up</i> Este mês</div>
-                        </div>
+                        <div class="finance-card"><small>Receita Pendente</small><h2>R$ {{ totalReceivables }}</h2><div class="trend"><i class="material-icons-round">trending_up</i> Este mês</div></div>
                         <div class="card no-padding mt-4">
                             <table class="modern-table">
                                 <thead><tr><th>Morador</th><th>Área</th><th>Data</th><th>Valor</th></tr></thead>
-                                <tbody>
-                                    <tr v-for="res in paidReservations" :key="res.id">
-                                        <td>{{ res.userName }}</td>
-                                        <td>{{ getSpaceName(res.spaceId) }}</td>
-                                        <td>{{ formatDate(res.date) }}</td>
-                                        <td class="text-green">+ R$ {{ res.price }}</td>
-                                    </tr>
-                                </tbody>
+                                <tbody><tr v-for="res in paidReservations" :key="res.id"><td>{{ res.userName }}</td><td>{{ getSpaceName(res.spaceId) }}</td><td>{{ formatDate(res.date) }}</td><td class="text-green">+ R$ {{ res.price }}</td></tr></tbody>
                             </table>
                         </div>
                     </div>
-
                 </div>
             </main>
 
             <nav class="mobile-nav" v-if="currentUser">
                 <a href="#" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i></a>
                 <a href="#" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i></a>
-                <div class="fab" @click="openBookingModal(spaces[0])" v-if="spaces.length"><i class="material-icons-round">add</i></div>
+                <div v-if="currentUser.type === 'superuser'" class="fab" @click="showCondoModal = true"><i class="material-icons-round">add</i></div>
+                <div v-else class="fab" @click="openBookingModal(spaces[0])" v-if="spaces.length"><i class="material-icons-round">add</i></div>
                 <a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i></a>
                 <a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i></a>
             </nav>
@@ -333,7 +261,6 @@
                 </div>
                 <div class="modal-f"><button class="btn btn-primary w-100" @click="confirmBooking">Confirmar</button></div>
             </div>
-
             <div class="modal-window" v-if="showBlockModal">
                 <div class="modal-h"><h3>Bloquear Data</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
                 <div class="modal-b">
@@ -343,7 +270,6 @@
                 </div>
                 <div class="modal-f"><button class="btn btn-danger w-100" @click="confirmBlock">Confirmar Bloqueio</button></div>
             </div>
-
             <div class="modal-window" v-if="showCondoModal">
                 <div class="modal-h"><h3>Novo Cliente</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
                 <div class="modal-b">
@@ -356,7 +282,6 @@
                 <div class="modal-f"><button class="btn btn-primary w-100" @click="createCondo">Cadastrar</button></div>
             </div>
         </div>
-
     </div>
     <script type="module" src="src/main.js"></script>
 </body>

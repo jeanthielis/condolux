@@ -8,23 +8,72 @@ export function useAdmin() {
     const newSpace = ref({ name: '', capacity: '', rules: '', image: '', price: '' });
     const showCondoModal = ref(false);
 
+    // --- SUPER USER ---
     const createCondo = async () => {
+        if(!newCondo.value.name || !newCondo.value.syndicEmail) return alert("Preencha tudo");
         store.setLoading(true);
         try {
-            const ref = await DataService.createCondo(newCondo.value);
-            await AuthService.createSyndicUser({ name: newCondo.value.syndicName, email: newCondo.value.syndicEmail, password: newCondo.value.syndicPassword }, ref.id);
-            alert("Condomínio criado!"); window.location.reload();
-        } catch(e) { store.addToast(e.message, "error"); } finally { store.setLoading(false); }
+            // Salva e-mail do síndico no cadastro do condomínio também
+            const condoData = { 
+                ...newCondo.value, 
+                syndicEmail: newCondo.value.syndicEmail,
+                suspended: false 
+            };
+            
+            const cRef = await DataService.createCondo(condoData);
+            
+            await AuthService.createSyndicUser({
+                name: newCondo.value.syndicName,
+                email: newCondo.value.syndicEmail,
+                password: newCondo.value.syndicPassword
+            }, cRef.id);
+            
+            alert("Condomínio criado com sucesso!");
+            window.location.reload();
+        } catch(e) { store.addToast(e.message, "error"); }
+        finally { store.setLoading(false); }
     };
-    const totalMRR = computed(() => store.condoList.length * 150);
+
+    const toggleCondoStatus = async (condo) => {
+        const action = condo.suspended ? "ATIVAR" : "SUSPENDER";
+        if(!confirm(`Deseja realmente ${action} o acesso de: ${condo.name}?`)) return;
+        
+        try {
+            await DataService.toggleCondoStatus(condo.id, condo.suspended);
+            store.addToast(`Condomínio ${action === 'ATIVAR' ? 'Ativado' : 'Suspenso'}!`);
+        } catch(e) { store.addToast("Erro ao alterar status", "error"); }
+    };
+
+    const totalMRR = computed(() => {
+        // Apenas condomínios ativos contam para a receita
+        const active = store.condoList.filter(c => !c.suspended).length;
+        return active * 150; 
+    });
+
+    // --- SÍNDICO ---
     const addSpace = async () => {
-        try { await DataService.addSpace({ ...newSpace.value, condoId: store.currentUser.condoId }); store.addToast("Área salva!"); newSpace.value = {name:'',capacity:'',price:'',image:''}; } 
-        catch(e) { store.addToast("Erro", "error"); }
+        try {
+            await DataService.addSpace({ ...newSpace.value, condoId: store.currentUser.condoId });
+            store.addToast("Área salva!");
+            newSpace.value = { name: '', capacity: '', rules: '', image: '', price: '' };
+        } catch(e) { store.addToast("Erro ao salvar", "error"); }
     };
+
     const handleImageUpload = (e) => {
-        const f = e.target.files[0]; if(!f || f.size>500*1024) return alert("Max 500KB");
-        const r = new FileReader(); r.onload=(ev)=>{newSpace.value.image=ev.target.result; store.addToast("Foto ok");}; r.readAsDataURL(f);
+        const f = e.target.files[0];
+        if(!f || f.size > 500*1024) return alert("Max 500KB");
+        const r = new FileReader(); 
+        r.onload = (ev) => { newSpace.value.image = ev.target.result; store.addToast("Foto ok"); }; 
+        r.readAsDataURL(f);
     };
+
     const getRegistrationLink = () => window.location.href.split('?')[0] + `?code=${store.currentUser?.condoId}`;
-    return { newCondo, newSpace, showCondoModal, createCondo, addSpace, handleImageUpload, totalMRR, getRegistrationLink };
+
+    // Exportar tudo que o HTML vai usar
+    return { 
+        newCondo, newSpace, showCondoModal, 
+        createCondo, toggleCondoStatus, 
+        addSpace, handleImageUpload, 
+        totalMRR, getRegistrationLink 
+    };
 }
