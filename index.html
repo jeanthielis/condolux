@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CondoSaas | Gestão Premium</title>
+    <title>CondoSaas | Gestão</title>
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -86,16 +86,16 @@
                         <a href="#" class="nav-item" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i> <span>Agenda</span></a>
                         <a href="#" class="nav-item" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i> <span>Minhas Reservas</span></a>
                         
-                        <div v-if="currentUser.type !== 'resident'" class="nav-label mt-4">GESTÃO</div>
-                        <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i> <span>Financeiro</span></a>
-                        <a href="#" v-if="currentUser.type !== 'resident'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i> <span>Admin</span></a>
+                        <div v-if="currentUser.type === 'syndic'" class="nav-label mt-4">GESTÃO</div>
+                        <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i> <span>Financeiro</span></a>
+                        <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i> <span>Admin</span></a>
                     </div>
                 </nav>
 
                 <div class="user-pill">
-                    <div class="avatar">{{ currentUser.name.charAt(0) }}</div>
+                    <div class="avatar">{{ currentUser.name ? currentUser.name.charAt(0) : 'U' }}</div>
                     <div class="user-meta">
-                        <strong>{{ currentUser.name }}</strong>
+                        <strong>{{ currentUser.name || 'Usuário' }}</strong>
                         <span>{{ currentUser.type === 'superuser' ? 'Admin Geral' : (currentUser.type === 'syndic' ? 'Síndico' : 'Morador') }}</span>
                     </div>
                     <button @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button>
@@ -172,7 +172,7 @@
                             </div>
                             <div class="spaces-grid">
                                 <div v-for="space in spaces" :key="space.id" class="space-item">
-                                    <div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500') +')'}">
+                                    <div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/150') +')'}">
                                         <div class="price-chip" :class="{'free': !space.price}">{{ space.price ? 'R$ '+space.price : 'Grátis' }}</div>
                                     </div>
                                     <div class="space-details">
