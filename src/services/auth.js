@@ -29,5 +29,8 @@ export const AuthService = {
     async getUserProfile(uid) {
         const docSnap = await getDoc(doc(db, "users", uid));
         return docSnap.exists() ? docSnap.data() : null;
-    }
+    },
+    async sendResetEmail(email) {
+        await sendPasswordResetEmail(auth, email);
+    },
 };

@@ -4,17 +4,16 @@ export const store = reactive({
     currentUser: null,
     currentView: 'calendar',
     loading: false,
-    toasts: [],
     
     // Dados
     condoName: '',
+    condoSuspended: false,
     condoList: [],
     spaces: [],
     reservations: [],
+    residents: [], // <--- NOVO: Lista de Moradores
     
-    setLoading(val) { this.loading = val; },
-    addToast(msg, type='success') {
-        this.toasts.push({message: msg, type});
-        setTimeout(() => this.toasts.shift(), 3000);
-    }
+    selectedDate: new Date().toISOString().split('T')[0],
+    
+    setLoading(val) { this.loading = val; }
 });

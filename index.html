@@ -3,240 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CondoSaas | Gestão Premium</title>
+    <title>CondoSaas | Gestão</title>
     
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .profile-card { text-align: center; padding: 40px 20px; }
+        .profile-avatar-lg { width: 80px; height: 80px; background: var(--primary); color: white; font-size: 32px; font-weight: 800; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3); }
+        .credit-display { background: #ECFDF5; color: #065F46; padding: 15px; border-radius: 12px; margin: 20px 0; font-weight: 700; font-size: 1.2rem; border: 1px solid #10B981; }
+        .staff-switcher { display: flex; background: rgba(255,255,255,0.2); padding: 4px; border-radius: 8px; margin-right: 10px; }
+        .staff-btn { background: transparent; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; opacity: 0.7; }
+        .staff-btn.active { background: white; color: #1E293B; opacity: 1; }
+        .staff-header { background: #1E293B; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+        .staff-filters { display: flex; gap: 10px; align-items: center; }
+        .staff-filters input { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 8px; padding: 8px; }
+        .filters-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; background: #F8FAFC; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .filter-select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; width: 100%; background: white; }
+        .spaces-list-adm { margin-top: 25px; display: grid; gap: 10px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .space-row-adm { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 15px; border-radius: 10px; border: 1px solid var(--border); transition: 0.2s; }
+        .space-row-adm:hover { border-color: var(--primary); }
+        .time-slots-wrapper { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+        .time-slot-tag { background: #EEF2FF; color: var(--primary); font-size: 0.8rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+        .time-slot-tag i { font-size: 14px; cursor: pointer; color: var(--text-muted); } .time-slot-tag i:hover { color: var(--danger); }
+        .time-inputs { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .btn-plus { width: 44px; height: 44px; background: var(--success); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        /* Lista Checkin e Convidados */
+        details { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #F8FAFC; }
+        summary { font-weight: 700; cursor: pointer; font-size: 0.9rem; color: var(--primary); outline: none; }
+        .mini-list { list-style: none; margin-top: 10px; padding: 0; }
+        .mini-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; margin-bottom: 5px; border-radius: 8px; font-size: 0.9rem; border: 1px solid var(--border); }
+        .mini-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 5px; margin-top: 10px; }
+        
+        /* Toggle Checkin */
+        .checkin-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
+        .checkin-row:last-child { border-bottom: none; }
+        .check-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); background: white; color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .check-btn.checked { background: var(--success); border-color: var(--success); color: white; }
+    </style>
 </head>
 <body>
 
-    <div id="loading-screen">
-        <div class="logo-pulse"><i class="material-icons-round">apartment</i></div>
-    </div>
+    <div id="loading-screen"><div class="loader-content"><div class="logo-pulse"><i class="material-icons-round">apartment</i></div></div></div>
 
     <div id="app" v-cloak>
-        <div class="toast-container">
-            <div v-for="(t, i) in toasts" :key="i" class="toast" :class="t.type">
-                <i class="material-icons-round">{{ t.type === 'success' ? 'check_circle' : 'error_outline' }}</i>
-                <span>{{ t.message }}</span>
-            </div>
-        </div>
+        <div class="toast-container"><div v-for="(t, i) in toasts" :key="i" class="toast" :class="t.type"><i class="material-icons-round">{{ t.type === 'success' ? 'check_circle' : 'error_outline' }}</i><span>{{ t.message }}</span></div></div>
 
         <div v-if="!currentUser" class="auth-wrapper">
-            <div class="auth-box">
-                <div class="auth-banner">
-                    <div class="brand-hero"><i class="material-icons-round">domain_add</i><h1>CondoSaas</h1></div>
-                    <p>Gestão condominial inteligente.</p>
-                </div>
-                <div class="auth-content">
-                    <form @submit.prevent="handleLogin" class="auth-form animate-fade">
-                        <div class="header-text"><h2>Bem-vindo</h2><p>Acesse sua conta.</p></div>
-                        <div class="input-group"><label>E-mail</label><input type="email" v-model="authForm.email" required class="modern-input"></div>
-                        <div class="input-group"><label>Senha</label><input type="password" v-model="authForm.password" required class="modern-input"></div>
-                        <button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Entrando...' : 'Acessar Plataforma' }}</button>
-                    </form>
-                </div>
-            </div>
+            <div class="auth-box"><div class="auth-banner"><div class="brand-hero"><i class="material-icons-round">domain_add</i><h1>CondoSaas</h1></div><p>Gestão condominial inteligente.</p></div><div class="auth-content"><form @submit.prevent="handleLogin" class="auth-form animate-fade"><div class="header-text"><h2>Bem-vindo</h2><p>Acesse sua conta.</p></div><div class="input-group"><label>E-mail</label><input type="email" v-model="authForm.email" required class="modern-input"></div><div class="input-group"><label>Senha</label><input type="password" v-model="authForm.password" required class="modern-input"></div><button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Entrando...' : 'Acessar Plataforma' }}</button></form></div></div>
         </div>
 
         <div v-else class="app-layout">
-            
             <aside class="sidebar">
                 <div class="brand"><div class="logo-box"><i class="material-icons-round">apartment</i></div><span class="brand-text">CondoSaas</span></div>
                 <nav class="nav-menu">
-                    <div v-if="currentUser.type === 'superuser'">
-                        <div class="nav-label">PLATAFORMA</div>
-                        <a href="#" class="nav-item active"><i class="material-icons-round">analytics</i> <span>Visão Geral</span></a>
-                    </div>
+                    <div v-if="currentUser.type === 'superuser'"><div class="nav-label">PLATAFORMA</div><a href="#" class="nav-item active"><i class="material-icons-round">analytics</i> <span>Visão Geral</span></a></div>
+                    <div v-else-if="currentUser.type === 'staff'"><div class="nav-label">OPERAÇÃO</div><a href="#" class="nav-item active"><i class="material-icons-round">table_view</i> <span>Reservas</span></a></div>
                     <div v-else>
                         <div class="nav-label">PRINCIPAL</div>
                         <a href="#" class="nav-item" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i> <span>Agenda</span></a>
                         <a href="#" class="nav-item" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i> <span>Minhas Reservas</span></a>
                         <div v-if="currentUser.type === 'syndic'" class="nav-label mt-4">GESTÃO</div>
+                        <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'residents'}" @click="currentView = 'residents'"><i class="material-icons-round">groups</i> <span>Moradores</span></a>
+                        <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'staff_manage'}" @click="currentView = 'staff_manage'"><i class="material-icons-round">badge</i> <span>Equipe</span></a>
                         <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i> <span>Financeiro</span></a>
                         <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i> <span>Admin</span></a>
                     </div>
                 </nav>
-                <div class="user-pill">
-                    <div class="avatar">{{ currentUser.name.charAt(0) }}</div>
-                    <div class="user-meta"><strong>{{ currentUser.name }}</strong><span>{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : 'Morador') }}</span></div>
-                    <button @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button>
-                </div>
+                <div class="user-pill"><div class="avatar">{{ currentUser.name.charAt(0) }}</div><div class="user-meta"><strong>{{ currentUser.name }}</strong><span>{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : (currentUser.type === 'staff' ? 'Portaria' : 'Morador')) }}</span><span v-if="currentUser.credits > 0" style="color:var(--success); font-weight:700; font-size:0.75rem; margin-top:2px;">Crédito: R$ {{ currentUser.credits }}</span></div><button @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button></div>
             </aside>
 
             <main class="main-content">
-                <header class="top-header">
-                    <div class="page-title">
-                        <h1>{{ getTitle() }}</h1>
-                        <span v-if="currentUser.type !== 'superuser'" class="condo-tag"><i class="material-icons-round">location_on</i> {{ condoName }}</span>
-                    </div>
-                </header>
-
+                <header class="top-header"><div class="page-title"><h1>{{ getTitle() }}</h1><span v-if="currentUser.type !== 'superuser'" class="condo-tag"><i class="material-icons-round">location_on</i> {{ condoName }}</span></div></header>
                 <div class="content-body">
                     
-                    <div v-if="currentUser.type === 'superuser'" class="animate-fade">
-                        <div class="kpi-grid">
-                            <div class="kpi-card purple">
-                                <div class="kpi-icon"><i class="material-icons-round">domain</i></div>
-                                <div><h3>{{ condoList.length }}</h3><p>Condomínios</p></div>
-                            </div>
-                            <div class="kpi-card green">
-                                <div class="kpi-icon"><i class="material-icons-round">payments</i></div>
-                                <div><h3>R$ {{ totalMRR }}</h3><p>MRR Mensal</p></div>
-                            </div>
-                        </div>
+                    <div v-if="currentUser.type === 'superuser'" class="animate-fade"><div class="kpi-grid"><div class="kpi-card purple"><div class="kpi-icon"><i class="material-icons-round">domain</i></div><div><h3>{{ condoList.length }}</h3><p>Condomínios</p></div></div><div class="kpi-card green"><div class="kpi-icon"><i class="material-icons-round">payments</i></div><div><h3>R$ {{ totalMRR }}</h3><p>MRR</p></div></div></div><div class="section-title"><h3>Clientes</h3><button class="btn btn-primary btn-sm" @click="showCondoModal = true">Novo</button></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Condomínio</th><th>Síndico</th><th>Status</th><th>Ações</th></tr></thead><tbody><tr v-for="c in condoList" :key="c.id" :style="{ opacity: c.suspended ? 0.6 : 1 }"><td><strong>{{ c.name }}</strong><br><small>{{ c.address }}</small></td><td>{{ c.syndicName }}<br><small>{{ c.syndicEmail }}</small></td><td><span class="status-pill" :class="c.suspended ? 'suspended' : 'approved'">{{ c.suspended ? 'SUSPENSO' : 'ATIVO' }}</span></td><td><button class="btn-icon-mini" @click="toggleCondoStatus(c)"><i class="material-icons-round" :style="{ color: c.suspended ? 'green' : 'red' }">{{ c.suspended ? 'play_circle' : 'pause_circle' }}</i></button></td></tr></tbody></table></div></div>
+                    <div v-if="currentView === 'calendar'" class="animate-fade"><div class="calendar-layout"><div class="card calendar-widget" style="min-height: 500px;"><div class="widget-header"><button class="nav-btn" @click="changeMonth(-1)"><i class="material-icons-round">chevron_left</i></button><h3>{{ monthLabel }}</h3><button class="nav-btn" @click="changeMonth(1)"><i class="material-icons-round">chevron_right</i></button></div><div class="days-grid"><div v-for="d in ['D','S','T','Q','Q','S','S']" class="d-head">{{ d }}</div><div v-for="n in paddingDays" class="d-cell empty"></div><div v-for="day in daysInMonth" class="d-cell" :class="{ 'today': isToday(day) }" :style="{ border: store.selectedDate.endsWith(String(day).padStart(2,'0')) ? '2px solid var(--primary)' : '' }" @click="selectDate(day)"><span>{{ day }}</span><div class="dots"><div v-for="res in getReservationsForDay(day)" class="dot" :style="{ background: getStatusColor(res.status) }"></div></div></div></div><div class="cal-legend"><small><span class="dot-sample green"></span> Aprovado</small><small><span class="dot-sample blue"></span> Pendente</small><small><span class="dot-sample gray"></span> Manutenção</small></div></div><div class="spaces-grid"><div v-for="space in spaces" :key="space.id" class="space-item"><div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500') +')'}"><div class="price-chip" :class="{'free': !space.price}">{{ space.price ? 'R$ '+space.price : 'Grátis' }}</div><div class="status-pill" :class="getSpaceStatusForDate(space.id).class" style="position:absolute; top:8px; left:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">{{ getSpaceStatusForDate(space.id).label }}</div><div v-if="getSpaceReservation(space.id)?.status === 'maintenance'" style="position:absolute; bottom:0; left:0; right:0; background:rgba(239, 68, 68, 0.95); color:white; font-size:0.75rem; padding:6px; text-align:center; font-weight:600;"><i class="material-icons-round" style="font-size:10px;">lock</i> {{ getSpaceReservation(space.id)?.reason }}</div></div><div class="space-details"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>{{ space.name }}</h4><small style="font-size:0.7rem; color:var(--primary); font-weight:700;">{{ store.selectedDate.split('-').reverse().join('/') }}</small></div><p><i class="material-icons-round">group</i> {{ space.capacity }} p.</p><div class="space-btns"><template v-if="getSpaceStatusForDate(space.id).type === 'free'"><button class="btn btn-outline btn-sm w-100" @click="openBookingModal(space)">Reservar</button><button v-if="currentUser.type === 'syndic'" class="btn btn-icon btn-sm" @click="openBlockModal(space)"><i class="material-icons-round">block</i></button></template><template v-else-if="getSpaceStatusForDate(space.id).type === 'maintenance'"><button v-if="currentUser.type === 'syndic'" class="btn btn-primary w-100" style="background:var(--danger); border:none;" @click="deleteReservation(getSpaceReservation(space.id))"><i class="material-icons-round" style="font-size:16px; margin-right:5px;">lock_open</i> Desbloquear</button><button v-else class="btn btn-outline btn-sm w-100" disabled style="opacity:0.5; cursor:not-allowed;">Bloqueado</button></template><template v-else><button class="btn btn-outline btn-sm w-100" disabled style="opacity:0.5; cursor:not-allowed;">Ocupado</button></template></div></div></div></div></div></div>
+                    <div v-if="currentView === 'reservations'" class="animate-fade"><div class="tabs-header" style="margin-bottom: 25px;"><button class="tab-btn" :class="{active: reservationTab === 'scheduled'}" @click="reservationTab = 'scheduled'">Agendadas</button><button class="tab-btn" :class="{active: reservationTab === 'cancelled'}" @click="reservationTab = 'cancelled'">Canceladas</button></div><div v-if="reservationTab === 'scheduled'"><div v-if="scheduledReservations.length === 0" class="empty-state" style="text-align:center; padding:50px;"><i class="material-icons-round" style="font-size:48px; opacity:0.5; margin-bottom:10px;">event_note</i><h3>Nenhuma agendada</h3></div><div class="tickets-list"><div v-for="res in scheduledReservations" :key="res.id" class="ticket-card"><div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div><div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill" :class="res.status">{{ res.status === 'approved' ? 'Confirmado' : 'Análise' }}</span></div><div class="ticket-right"><button class="btn-trash" @click="deleteReservation(res)" title="Cancelar"><i class="material-icons-round">delete</i></button></div></div></div></div><div v-else><div v-if="cancelledReservations.length === 0" class="empty-state" style="text-align:center; padding:50px; color:var(--text-muted);"><h3>Histórico Limpo</h3></div><div class="tickets-list"><div v-for="res in cancelledReservations" :key="res.id" class="ticket-card" style="opacity: 0.6; filter: grayscale(1);"><div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div><div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill suspended">CANCELADO</span></div></div></div></div></div>
+                    <div v-if="currentView === 'residents' && currentUser.type === 'syndic'" class="animate-fade"><div class="card"><div class="card-title" style="margin-bottom:20px;"><h3>Moradores Cadastrados</h3><p style="color:var(--text-muted); font-size:0.9rem;">Gerencie o acesso dos moradores.</p></div><div class="input-icon-wrapper" style="margin-bottom:20px;"><input type="text" v-model="residentSearch" placeholder="Buscar por nome, apto ou email..." class="modern-input" style="margin-bottom:0;"><i class="material-icons-round" style="top:12px;">search</i></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Morador</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead><tbody><tr v-for="r in filteredResidents" :key="r.id" :style="{ opacity: r.blocked ? 0.6 : 1, background: r.blocked ? '#FEF2F2' : '' }"><td><strong>{{ r.name }}</strong><br><small class="text-muted">Apto: {{ r.apartment }}</small></td><td>{{ r.email }}</td><td><span class="status-pill" :class="r.blocked ? 'suspended' : 'approved'">{{ r.blocked ? 'BLOQUEADO' : 'ATIVO' }}</span></td><td style="display:flex; gap:5px;"><button class="btn-icon-mini" :title="r.blocked ? 'Desbloquear' : 'Bloquear'" @click="toggleBlockUser(r)"><i class="material-icons-round" :style="{ color: r.blocked ? 'green' : 'red' }">{{ r.blocked ? 'lock_open' : 'block' }}</i></button><button class="btn-icon-mini" title="Resetar Senha" @click="resetUserPassword(r)"><i class="material-icons-round">lock_reset</i></button></td></tr></tbody></table><div v-if="filteredResidents.length === 0" style="padding:20px; text-align:center; color:var(--text-muted);">Nenhum morador encontrado.</div></div></div></div>
+                    <div v-if="currentView === 'admin' && currentUser.type === 'syndic'" class="animate-fade"><div class="invite-banner"><div class="invite-txt"><h3>Convidar Moradores</h3><p>Código: <strong>{{ currentUser.condoId }}</strong></p><div class="link-copy"><input type="text" :value="getRegistrationLink()" readonly></div></div><div class="qr-code-bg"><img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + getRegistrationLink()" alt="QR"></div></div><div class="kpi-grid"><div class="kpi-card" style="border-left: 5px solid #F59E0B;"><div class="kpi-icon" style="background:#F59E0B;"><i class="material-icons-round">pending_actions</i></div><div><h3>{{ pendingCount }}</h3><p>Solicitações Pendentes</p></div></div><div class="kpi-card" style="border-left: 5px solid #10B981;"><div class="kpi-icon" style="background:#10B981;"><i class="material-icons-round">event_available</i></div><div><h3>{{ spaces.length }}</h3><p>Áreas Comuns</p></div></div></div><div class="admin-columns"><div class="card"><div class="tabs-header" style="margin-bottom:15px;"><button class="tab-btn" :class="{active: adminReservationTab === 'pending'}" @click="adminReservationTab = 'pending'">Pendentes <span v-if="pendingCount > 0" class="status-pill pending" style="font-size:0.6rem; padding:2px 6px;">{{ pendingCount }}</span></button><button class="tab-btn" :class="{active: adminReservationTab === 'all'}" @click="adminReservationTab = 'all'">Histórico</button></div><div class="filters-bar" v-if="adminReservationTab === 'all'"><select v-model="adminFilters.status" class="filter-select"><option value="">Status: Todos</option><option value="approved">Aprovados</option><option value="rejected">Rejeitados</option><option value="cancelled">Cancelados</option><option value="maintenance">Manutenção</option></select><select v-model="adminFilters.spaceId" class="filter-select"><option value="">Área: Todas</option><option v-for="s in spaces" :key="s.id" :value="s.id">{{ s.name }}</option></select><input type="date" v-model="adminFilters.date" class="filter-select"></div><div class="approval-list" style="max-height: 500px; overflow-y: auto;"><div v-if="filteredReservations.length === 0" style="color:var(--text-muted); padding:30px; text-align:center;"><i class="material-icons-round" style="font-size:40px; opacity:0.3;">task_alt</i><br>Nenhuma solicitação encontrada.</div><div v-for="res in filteredReservations" :key="res.id" class="approval-row"><div class="user-info"><strong>{{ getSpaceName(res.spaceId) }}</strong><span class="status-pill" :class="res.status" style="margin-left:5px; font-size:0.6rem;">{{ res.status }}</span><br><span style="font-size:0.8rem; color:var(--text-muted);">{{ res.userName }} • {{ formatDate(res.date) }} • {{ res.time }}</span></div><div class="actions"><template v-if="res.status === 'pending'"><button class="btn-circle approve" title="Aprovar" @click="updateStatus(res, 'approved')"><i class="material-icons-round">check</i></button><button class="btn-circle reject" title="Rejeitar" @click="updateStatus(res, 'rejected')"><i class="material-icons-round">close</i></button></template><template v-else><button class="btn-icon-mini" style="color:var(--danger);" title="Cancelar/Excluir" @click="deleteReservation(res)"><i class="material-icons-round">{{ res.status === 'approved' ? 'cancel' : 'delete' }}</i></button></template></div></div></div></div><div class="card"><div class="card-title"><h3>Nova Área</h3></div><div class="form-stack"><input type="text" v-model="newSpace.name" class="modern-input" placeholder="Nome da Área"><div class="row-2"><input type="number" v-model="newSpace.capacity" class="modern-input" placeholder="Capacidade"><input type="number" v-model="newSpace.price" class="modern-input" placeholder="Preço (R$)"></div><label style="font-size:0.85rem; font-weight:700;">Horários Disponíveis:</label><div class="time-inputs"><input type="time" v-model="tempStart" class="modern-input" style="margin-bottom:0;"><span style="font-weight:700;">até</span><input type="time" v-model="tempEnd" class="modern-input" style="margin-bottom:0;"><button class="btn-plus" @click="addTimeSlot"><i class="material-icons-round">add</i></button></div><div class="time-slots-wrapper"><div v-if="tempTimeSlots.length === 0" style="color:var(--text-muted); font-size:0.8rem;">Ex: 08:00 - 12:00</div><span v-for="(slot, idx) in tempTimeSlots" :key="idx" class="time-slot-tag">{{ slot }} <i class="material-icons-round" @click="removeTimeSlot(idx)">close</i></span></div><label class="btn btn-outline w-100" style="margin-bottom:15px; margin-top:10px;"><input type="file" @change="handleImageUpload" accept="image/*" style="display:none;"><i class="material-icons-round">cloud_upload</i> {{ newSpace.image ? 'Foto Pronta' : 'Enviar Foto' }}</label><button class="btn btn-primary w-100" @click="saveSpace">Salvar Área</button><div class="spaces-list-adm"><h4 style="margin-bottom:10px; color:var(--text-muted); font-size:0.75rem; text-transform:uppercase; font-weight:700;">Áreas Cadastradas</h4><div v-if="spaces.length === 0" style="font-size:0.8rem; color:var(--text-muted);">Nenhuma área criada.</div><div v-for="s in spaces" :key="s.id" class="space-row-adm"><div style="display:flex; align-items:center; gap:10px;"><div :style="{backgroundImage: 'url('+ (s.image || 'https://via.placeholder.com/50') +')'}" style="width:30px; height:30px; border-radius:6px; background-size:cover;"></div><span style="font-weight:600; font-size:0.9rem;">{{ s.name }}</span></div><button class="btn-icon-mini" style="color:var(--danger);" title="Excluir Área" @click="deleteSpace(s.id)"><i class="material-icons-round">delete</i></button></div></div></div></div></div></div>
+                    <div v-if="currentView === 'finance'" class="animate-fade"><div class="finance-card"><small>Receita Estimada</small><h2>R$ {{ totalReceivables }}</h2></div><div class="card no-padding mt-4"><table class="modern-table"><thead><tr><th>Morador</th><th>Área</th><th>Data</th><th>Valor</th></tr></thead><tbody><tr v-for="res in paidReservations" :key="res.id"><td>{{ res.userName }}</td><td>{{ getSpaceName(res.spaceId) }}</td><td>{{ formatDate(res.date) }}</td><td class="text-green">+ R$ {{ res.price }}</td></tr></tbody></table></div></div>
+                    <div v-if="currentView === 'staff_manage' && currentUser.type === 'syndic'" class="animate-fade"><div class="section-title"><h3>Equipe de Portaria</h3><button class="btn btn-primary btn-sm" @click="showStaffModal = true">Adicionar</button></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Ações</th></tr></thead><tbody><tr v-for="s in staffList" :key="s.id"><td>{{ s.name }}</td><td>{{ s.email }}</td><td><span class="status-pill pending">STAFF</span></td><td><button class="btn-icon-mini" style="color:var(--danger);" @click="removeStaffMember(s.id)" title="Remover da Equipe"><i class="material-icons-round">person_remove</i></button></td></tr></tbody></table><div v-if="staffList.length === 0" style="padding:20px; text-align:center; color:var(--text-muted);">Nenhuma equipe cadastrada.</div></div></div>
+                    <div v-if="currentView === 'profile'" class="animate-fade"><div class="card profile-card"><div class="profile-avatar-lg">{{ currentUser.name.charAt(0) }}</div><h2 style="margin-bottom: 5px;">{{ currentUser.name }}</h2><p style="color: var(--text-muted);">{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : (currentUser.type === 'staff' ? 'Portaria' : 'Morador')) }}</p><div class="credit-display">R$ {{ currentUser.credits || '0,00' }}<div style="font-size: 0.8rem; font-weight: 500; margin-top: 5px;">Seu Saldo de Créditos</div></div><button @click="logout" class="btn btn-outline w-100" style="color: var(--danger); border-color: var(--danger); margin-top: 20px;"><i class="material-icons-round">logout</i> Sair da Conta</button></div></div>
 
-                        <div class="section-title">
-                            <h3>Gestão de Clientes</h3>
-                            <button class="btn btn-primary btn-sm" @click="showCondoModal = true"><i class="material-icons-round">add</i> Novo Cliente</button>
+                    <div v-if="currentView === 'staff_dashboard' && currentUser.type === 'staff'" class="animate-fade">
+                        <div class="staff-header">
+                            <div><h2 style="margin-bottom:0;">Portaria Digital</h2><p style="opacity:0.8; font-size:0.9rem;">{{ staffFilterMode === 'day' ? 'Visão Diária' : 'Visão Mensal' }}</p></div>
+                            <div class="staff-filters"><div class="staff-switcher"><button class="staff-btn" :class="{active: staffFilterMode === 'day'}" @click="staffFilterMode = 'day'">Dia</button><button class="staff-btn" :class="{active: staffFilterMode === 'month'}" @click="staffFilterMode = 'month'">Mês</button></div><input v-if="staffFilterMode === 'day'" type="date" v-model="staffDate"><input v-else type="month" v-model="staffMonth"><button class="btn btn-primary" @click="generateDailyReport"><i class="material-icons-round">print</i></button></div>
                         </div>
-
                         <div class="card no-padding">
+                            <div class="card-title" style="padding:20px;"><h3>{{ staffFilterMode === 'day' ? `Reservas do Dia: ${staffDate.split('-').reverse().join('/')}` : `Reservas de ${staffMonth.split('-').reverse().join('/')}` }}</h3></div>
                             <table class="modern-table">
-                                <thead><tr><th>Condomínio</th><th>Síndico / Email</th><th>Status</th><th>Ações</th></tr></thead>
+                                <thead><tr><th>Data/Hora</th><th>Área</th><th>Morador</th><th>Status</th></tr></thead>
                                 <tbody>
-                                    <tr v-for="c in condoList" :key="c.id" :style="{ opacity: c.suspended ? 0.6 : 1 }">
-                                        <td><strong>{{ c.name }}</strong><br><small class="text-muted">{{ c.address }}</small></td>
-                                        <td>{{ c.syndicName }}<br><small class="text-muted">{{ c.syndicEmail || 'N/A' }}</small></td>
-                                        <td><span class="status-pill" :class="c.suspended ? 'suspended' : 'approved'">{{ c.suspended ? 'SUSPENSO' : 'ATIVO' }}</span></td>
-                                        <td>
-                                            <button class="btn-icon-mini" :title="c.suspended ? 'Ativar' : 'Suspender'" @click="toggleCondoStatus(c)">
-                                                <i class="material-icons-round" :style="{ color: c.suspended ? 'green' : 'red' }">{{ c.suspended ? 'play_circle' : 'pause_circle' }}</i>
-                                            </button>
-                                        </td>
+                                    <tr v-for="res in staffFilteredReservations" :key="res.id" @click="openCheckinModal(res)" style="cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
+                                        <td style="font-weight:800; color:var(--primary);"><span v-if="staffFilterMode === 'month'" style="font-size:0.8rem; display:block; color:var(--text-muted);">{{ res.date.split('-').reverse().join('/').substring(0, 5) }}</span>{{ res.time }}</td>
+                                        <td>{{ getSpaceName(res.spaceId) }}</td>
+                                        <td>{{ res.userName }}</td>
+                                        <td><span class="status-pill" :class="res.status">{{ res.status === 'approved' ? 'CONFIRMADO' : 'PENDENTE' }}</span></td>
                                     </tr>
                                 </tbody>
                             </table>
+                            <div v-if="staffFilteredReservations.length === 0" style="padding:40px; text-align:center; color:var(--text-muted);"><i class="material-icons-round" style="font-size:40px; opacity:0.3;">event_available</i><br>Nenhuma reserva encontrada.</div>
                         </div>
                     </div>
 
-                    <div v-if="currentView === 'calendar'" class="animate-fade">
-                        <div class="calendar-layout">
-                            <div class="card calendar-widget">
-                                <div class="widget-header">
-                                    <button class="nav-btn" @click="changeMonth(-1)"><i class="material-icons-round">chevron_left</i></button><h3>{{ monthLabel }}</h3><button class="nav-btn" @click="changeMonth(1)"><i class="material-icons-round">chevron_right</i></button>
-                                </div>
-                                <div class="days-grid">
-                                    <div class="d-head" v-for="d in ['D','S','T','Q','Q','S','S']">{{ d }}</div>
-                                    <div v-for="n in paddingDays" class="d-cell empty"></div>
-                                    <div v-for="day in daysInMonth" class="d-cell" :class="{ 'today': isToday(day) }" @click="selectDate(day)">
-                                        <span>{{ day }}</span>
-                                        <div class="dots"><div v-for="res in getReservationsForDay(day)" class="dot" :style="{ background: getStatusColor(res.status) }"></div></div>
-                                    </div>
-                                </div>
-                                <div class="cal-legend">
-                                    <small><span class="dot-sample green"></span> Aprovado</small><small><span class="dot-sample blue"></span> Pendente</small><small><span class="dot-sample gray"></span> Bloqueio</small>
-                                </div>
-                            </div>
-                            <div class="spaces-grid">
-                                <div v-for="space in spaces" :key="space.id" class="space-item">
-                                    <div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500') +')'}">
-                                        <div class="price-chip" :class="{'free': !space.price}">{{ space.price ? 'R$ '+space.price : 'Grátis' }}</div>
-                                    </div>
-                                    <div class="space-details">
-                                        <h4>{{ space.name }}</h4>
-                                        <p><i class="material-icons-round">group</i> {{ space.capacity }} pessoas</p>
-                                        <div class="space-btns">
-                                            <button class="btn btn-outline btn-sm w-100" @click="openBookingModal(space)">Reservar</button>
-                                            <button v-if="currentUser.type === 'syndic'" class="btn btn-icon btn-sm" @click="openBlockModal(space)"><i class="material-icons-round">block</i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="currentView === 'reservations'" class="animate-fade">
-                        <div v-if="myReservations.length === 0" class="empty-state" style="text-align: center; padding: 50px; color: var(--text-muted);">
-                            <i class="material-icons-round" style="font-size: 48px; opacity: 0.5;">event_note</i>
-                            <h3>Nenhuma reserva</h3><p>Suas reservas aparecerão aqui.</p>
-                        </div>
-                        <div class="tickets-list">
-                            <div v-for="res in myReservations" :key="res.id" class="ticket-card">
-                                <div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div>
-                                <div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill" :class="res.status">{{ res.status }}</span></div>
-                                <div class="ticket-right" v-if="res.status === 'pending'"><button class="btn-trash" @click="deleteReservation(res.id)"><i class="material-icons-round">delete</i></button></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="currentView === 'admin' && currentUser.type === 'syndic'" class="animate-fade">
-                        <div class="invite-banner">
-                            <div class="invite-txt"><h3>Convidar Moradores</h3><p>Código: <strong>{{ currentUser.condoId }}</strong></p><div class="link-copy"><input type="text" :value="getRegistrationLink()" readonly></div></div>
-                            <div class="qr-code-bg"><img :src="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + getRegistrationLink()" alt="QR"></div>
-                        </div>
-                        <div class="admin-columns">
-                            <div class="card">
-                                <div class="card-title" style="display:flex; justify-content:space-between; margin-bottom:20px;"><h3>Aprovações</h3><span class="status-pill pending" v-if="pendingReservations.length">{{ pendingReservations.length }}</span></div>
-                                <div class="approval-list">
-                                    <div v-if="pendingReservations.length === 0" style="color:var(--text-muted);">Tudo em dia!</div>
-                                    <div v-for="res in pendingReservations" :key="res.id" class="approval-row">
-                                        <div class="user-info"><strong>{{ getSpaceName(res.spaceId) }}</strong><br><span>{{ res.userName }} • {{ formatDate(res.date) }}</span></div>
-                                        <div class="actions"><button class="btn-circle approve" @click="updateStatus(res, 'approved')"><i class="material-icons-round">check</i></button><button class="btn-circle reject" @click="updateStatus(res, 'rejected')"><i class="material-icons-round">close</i></button></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <div class="card-title" style="margin-bottom:20px;"><h3>Nova Área</h3></div>
-                                <div class="form-stack">
-                                    <input type="text" v-model="newSpace.name" class="modern-input" placeholder="Nome">
-                                    <div class="row-2"><input type="number" v-model="newSpace.capacity" class="modern-input" placeholder="Capacidade"><input type="number" v-model="newSpace.price" class="modern-input" placeholder="Preço (R$)"></div>
-                                    <label class="btn btn-outline w-100" style="margin-bottom:15px;"><input type="file" @change="handleImageUpload" accept="image/*" style="display:none;"><i class="material-icons-round">cloud_upload</i> {{ newSpace.image ? 'Foto Pronta' : 'Enviar Foto' }}</label>
-                                    <button class="btn btn-primary w-100" @click="addSpace">Salvar Área</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div v-if="currentView === 'finance'" class="animate-fade">
-                        <div class="finance-card"><small>Receita Pendente</small><h2>R$ {{ totalReceivables }}</h2></div>
-                        <div class="card no-padding mt-4">
-                            <table class="modern-table">
-                                <thead><tr><th>Morador</th><th>Área</th><th>Data</th><th>Valor</th></tr></thead>
-                                <tbody><tr v-for="res in paidReservations" :key="res.id"><td>{{ res.userName }}</td><td>{{ getSpaceName(res.spaceId) }}</td><td>{{ formatDate(res.date) }}</td><td class="text-green">+ R$ {{ res.price }}</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </main>
 
             <nav class="mobile-nav" v-if="currentUser">
-                <a href="#" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i></a>
-                <a href="#" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i></a>
-                <div class="fab" @click="currentUser.type === 'superuser' ? showCondoModal = true : openBookingModal(spaces[0])"><i class="material-icons-round">add</i></div>
-                <a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i></a>
-                <a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i></a>
+                <template v-if="currentUser.type === 'staff'"><a href="#" class="active"><i class="material-icons-round">table_view</i></a><a href="#" @click="logout"><i class="material-icons-round">logout</i></a></template>
+                <template v-else><a href="#" :class="{active: currentView === 'calendar'}" @click="currentView = 'calendar'"><i class="material-icons-round">calendar_month</i></a><a href="#" :class="{active: currentView === 'reservations'}" @click="currentView = 'reservations'"><i class="material-icons-round">confirmation_number</i></a><div v-if="currentUser.type === 'superuser'" class="fab" @click="showCondoModal = true"><i class="material-icons-round">add</i></div><a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'finance'}" @click="currentView = 'finance'"><i class="material-icons-round">account_balance_wallet</i></a><a href="#" v-if="currentUser.type !== 'resident'" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i></a><a href="#" v-if="currentUser.type === 'syndic'" :class="{active: currentView === 'residents'}" @click="currentView = 'residents'"><i class="material-icons-round">groups</i></a><a href="#" :class="{active: currentView === 'profile'}" @click="currentView = 'profile'"><i class="material-icons-round">person</i></a></template>
             </nav>
         </div>
 
-        <div class="modal-backdrop" v-if="showModal || showCondoModal || showBlockModal" @click.self="closeAllModals">
+        <div class="modal-backdrop" v-if="showModal || showCondoModal || showBlockModal || showDateDetails || showStaffModal || showCheckinModal" @click.self="closeAllModals">
+            
             <div class="modal-window" v-if="showModal">
                 <div class="modal-h"><h3>Nova Reserva</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
-                <div class="modal-b"><p class="mb-3">Reservando: <strong>{{ selectedSpace?.name }}</strong></p><div class="input-group"><label>Data</label><input type="date" v-model="form.date" class="modern-input"></div><div class="input-group"><label>Horário</label><select v-model="form.time" class="modern-input"><option>08:00 - 12:00</option><option>13:00 - 17:00</option><option>18:00 - 22:00</option></select></div></div>
+                <div class="modal-b" style="max-height: 70vh; overflow-y: auto;">
+                    <p class="mb-3">Data: <strong>{{ store.selectedDate.split('-').reverse().join('/') }}</strong></p>
+                    <p class="mb-3">Área: <strong>{{ selectedSpace?.name }}</strong></p>
+                    <label style="font-size:0.8rem; font-weight:700;">Horário:</label>
+                    <select v-model="form.time" class="modern-input" style="margin-top:5px;"><option v-for="slot in availableTimeSlots" :key="slot" :value="slot">{{ slot }}</option></select>
+                    
+                    <details>
+                        <summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">group_add</i> Lista de Convidados ({{ guestList.length }})</summary>
+                        <div class="mini-form">
+                            <input type="text" v-model="tempGuest.name" placeholder="Nome Completo" class="modern-input" style="margin:0;">
+                            <input type="text" v-model="tempGuest.doc" placeholder="RG/CPF" class="modern-input" style="margin:0;">
+                            <button class="btn-plus" @click="addGuest"><i class="material-icons-round">add</i></button>
+                        </div>
+                        <ul class="mini-list">
+                            <li v-for="(g, i) in guestList" :key="i">
+                                <span>{{ g.name }} <small>({{ g.doc }})</small></span>
+                                <i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeGuest(i)">close</i>
+                            </li>
+                        </ul>
+                    </details>
+
+                    <details>
+                        <summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">local_shipping</i> Lista de Fornecedores ({{ supplierList.length }})</summary>
+                        <div class="mini-form">
+                            <input type="text" v-model="tempSupplier.name" placeholder="Nome Prestador" class="modern-input" style="margin:0;">
+                            <input type="text" v-model="tempSupplier.company" placeholder="Empresa" class="modern-input" style="margin:0;">
+                            <button class="btn-plus" @click="addSupplier"><i class="material-icons-round">add</i></button>
+                        </div>
+                        <ul class="mini-list">
+                            <li v-for="(s, i) in supplierList" :key="i">
+                                <span>{{ s.name }} <small>({{ s.company }})</small></span>
+                                <i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeSupplier(i)">close</i>
+                            </li>
+                        </ul>
+                    </details>
+                </div>
                 <div class="modal-f"><button class="btn btn-primary w-100" @click="confirmBooking">Confirmar</button></div>
             </div>
-            <div class="modal-window" v-if="showBlockModal">
-                <div class="modal-h"><h3>Bloquear Data</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
-                <div class="modal-b"><input type="date" v-model="form.date" class="modern-input"><input type="date" v-model="form.endDate" class="modern-input"><input type="text" v-model="form.reason" class="modern-input" placeholder="Motivo"></div>
-                <div class="modal-f"><button class="btn btn-primary w-100" style="background:var(--danger);" @click="confirmBlock">Confirmar Bloqueio</button></div>
-            </div>
-            <div class="modal-window" v-if="showCondoModal">
-                <div class="modal-h"><h3>Novo Cliente</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
-                <div class="modal-b">
-                    <input type="text" v-model="newCondo.name" class="modern-input mb-3" placeholder="Nome Condomínio">
-                    <input type="text" v-model="newCondo.address" class="modern-input mb-3" placeholder="Endereço">
-                    <input type="text" v-model="newCondo.syndicName" class="modern-input mb-3" placeholder="Nome Síndico">
-                    <input type="email" v-model="newCondo.syndicEmail" class="modern-input mb-3" placeholder="Email Síndico">
-                    <input type="text" v-model="newCondo.syndicPassword" class="modern-input" placeholder="Senha">
+
+            <div class="modal-window large" v-if="showCheckinModal && checkinReservation">
+                <div class="modal-h">
+                    <h3>Controle de Acesso</h3>
+                    <button @click="closeAllModals"><i class="material-icons-round">close</i></button>
                 </div>
-                <div class="modal-f"><button class="btn btn-primary w-100" @click="createCondo">Cadastrar</button></div>
+                <div class="modal-b" style="max-height: 70vh; overflow-y: auto;">
+                    <div style="background:#F1F5F9; padding:15px; border-radius:12px; margin-bottom:15px;">
+                        <strong>{{ checkinReservation.userName }}</strong><br>
+                        <small>{{ checkinReservation.date.split('-').reverse().join('/') }} • {{ checkinReservation.time }}</small>
+                    </div>
+
+                    <h4 style="margin-bottom:10px;">Convidados</h4>
+                    <div v-if="!checkinReservation.guests || checkinReservation.guests.length === 0" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Nenhum convidado na lista.</div>
+                    <div v-else>
+                        <div v-for="(g, idx) in checkinReservation.guests" :key="idx" class="checkin-row">
+                            <div><strong>{{ g.name }}</strong><br><small>{{ g.doc }}</small></div>
+                            <button class="check-btn" :class="{checked: g.checkedIn}" @click="toggleCheckin(g, 'guest')">
+                                <i class="material-icons-round">check</i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-top:20px; margin-bottom:10px;">Fornecedores</h4>
+                    <div v-if="!checkinReservation.suppliers || checkinReservation.suppliers.length === 0" style="color:var(--text-muted); font-size:0.9rem;">Nenhum fornecedor.</div>
+                    <div v-else>
+                        <div v-for="(s, idx) in checkinReservation.suppliers" :key="idx" class="checkin-row">
+                            <div><strong>{{ s.name }}</strong><br><small>{{ s.company }}</small></div>
+                            <button class="check-btn" :class="{checked: s.checkedIn}" @click="toggleCheckin(s, 'supplier')">
+                                <i class="material-icons-round">check</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div class="modal-window" v-if="showStaffModal"><div class="modal-h"><h3>Novo Porteiro</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">O usuário já deve ter cadastro no app como morador. Digite o e-mail dele abaixo para promovê-lo.</p><input type="email" v-model="staffEmailInput" class="modern-input" placeholder="E-mail do usuário"></div><div class="modal-f"><button class="btn btn-primary w-100" @click="addStaffMember">Promover a Staff</button></div></div>
+            <div class="modal-window large" v-if="showDateDetails"><div class="modal-h"><h3>Dia {{ store.selectedDate.split('-')[2] }}</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><div class="tabs-header"><button class="tab-btn" :class="{active: activeTab === 'available'}" @click="activeTab = 'available'">Disponíveis</button><button class="tab-btn" :class="{active: activeTab === 'occupied'}" @click="activeTab = 'occupied'">Ocupados</button></div><div v-if="activeTab === 'available'" class="animate-fade"><div v-if="availableSpaces.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">Tudo ocupado!</div><div v-for="space in availableSpaces" :key="space.id" class="list-item"><div style="display:flex; align-items:center;"><div class="item-img" :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/150') +')'}"></div><div class="item-info"><h4>{{ space.name }}</h4><p>{{ space.capacity }} pessoas</p></div></div><div style="display:flex; gap:5px;"><button class="btn btn-primary btn-sm" @click="openBookingModal(space)">Reservar</button></div></div></div><div v-else class="animate-fade"><div v-if="occupiedSpaces.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">Nada reservado.</div><div v-for="space in occupiedSpaces" :key="space.id" class="list-item" :style="{ background: getSpaceReservation(space.id)?.status === 'maintenance' ? '#FEF2F2' : '' }"><div style="display:flex; align-items:center; flex:1;"><div class="item-img" :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/150') +')'}"></div><div class="item-info"><h4>{{ space.name }}</h4><p v-if="getSpaceReservation(space.id)?.status === 'maintenance'" style="color:var(--danger); font-weight:700;"><i class="material-icons-round" style="font-size:12px;">lock</i> {{ getSpaceReservation(space.id)?.reason }}</p><p v-else>Reservado por {{ getSpaceReservation(space.id)?.userName }}</p></div></div><div v-if="currentUser.type === 'syndic' && getSpaceReservation(space.id)?.status === 'maintenance'"><button class="btn-icon-mini" style="background:var(--danger); color:white;" @click="deleteReservation(getSpaceReservation(space.id))"><i class="material-icons-round">lock_open</i></button></div><span v-else class="status-pill" :class="getSpaceReservation(space.id)?.status === 'maintenance' ? 'suspended' : 'approved'">{{ getSpaceReservation(space.id)?.status === 'maintenance' ? 'BLOQUEADO' : 'OCUPADO' }}</span></div></div></div></div>
+            <div class="modal-window" v-if="showBlockModal"><div class="modal-h"><h3>Bloquear Período</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><input type="date" v-model="form.date" class="modern-input"><input type="date" v-model="form.endDate" class="modern-input"><input type="text" v-model="form.reason" class="modern-input" placeholder="Motivo do Bloqueio"></div><div class="modal-f"><button class="btn btn-primary w-100" style="background:var(--danger);" @click="confirmBlock">Confirmar Bloqueio</button></div></div>
+            <div class="modal-window" v-if="showCondoModal"><div class="modal-h"><h3>Novo Cliente</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><input type="text" v-model="newCondo.name" class="modern-input mb-3" placeholder="Nome Condomínio"><input type="text" v-model="newCondo.address" class="modern-input mb-3" placeholder="Endereço"><input type="text" v-model="newCondo.syndicName" class="modern-input mb-3" placeholder="Nome Síndico"><input type="email" v-model="newCondo.syndicEmail" class="modern-input mb-3" placeholder="Email Síndico"><input type="text" v-model="newCondo.syndicPassword" class="modern-input" placeholder="Senha Inicial"></div><div class="modal-f"><button class="btn btn-primary w-100" @click="createCondo">Cadastrar</button></div></div>
         </div>
     </div>
     <script type="module" src="src/main.js"></script>
