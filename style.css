@@ -200,3 +200,4 @@ body { background-color: var(--bg-body); color: var(--text-main); height: 100vh;
 .item-info h4 { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
 .item-info p { font-size: 0.8rem; color: var(--text-muted); }
 .item-img { width: 50px; height: 50px; border-radius: 8px; background-size: cover; background-position: center; margin-right: 15px; }
+[v-cloak] { display: none !important; }

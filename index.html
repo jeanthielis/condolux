@@ -33,19 +33,29 @@
         .time-slot-tag i { font-size: 14px; cursor: pointer; color: var(--text-muted); } .time-slot-tag i:hover { color: var(--danger); }
         .time-inputs { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; }
         .btn-plus { width: 44px; height: 44px; background: var(--success); color: white; border: none; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        
-        /* Lista Checkin e Convidados */
         details { margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: #F8FAFC; }
         summary { font-weight: 700; cursor: pointer; font-size: 0.9rem; color: var(--primary); outline: none; }
         .mini-list { list-style: none; margin-top: 10px; padding: 0; }
         .mini-list li { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; margin-bottom: 5px; border-radius: 8px; font-size: 0.9rem; border: 1px solid var(--border); }
         .mini-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 5px; margin-top: 10px; }
-        
-        /* Toggle Checkin */
         .checkin-row { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .checkin-row:last-child { border-bottom: none; }
         .check-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border); background: white; color: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .check-btn.checked { background: var(--success); border-color: var(--success); color: white; }
+        
+        .chart-container { position: relative; height: 250px; width: 100%; margin-top: 15px; }
+        .plan-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .plan-bronze { background: #FDE68A; color: #92400E; }
+        .plan-silver { background: #E2E8F0; color: #475569; }
+        .plan-gold { background: #FEF3C7; color: #D97706; border: 1px solid #F59E0B; }
+        .condo-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        .detail-item { background: #F8FAFC; padding: 10px; border-radius: 8px; }
+        .detail-item small { display: block; color: var(--text-muted); font-size: 0.75rem; }
+        .detail-item strong { display: block; font-size: 0.9rem; }
+
+        /* MODO DEUS BANNER */
+        .god-mode-banner { position: fixed; top: 0; left: 0; right: 0; height: 40px; background: #EF4444; color: white; z-index: 9999; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .god-mode-banner button { background: white; color: #EF4444; border: none; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; margin-left: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -53,13 +63,19 @@
     <div id="loading-screen"><div class="loader-content"><div class="logo-pulse"><i class="material-icons-round">apartment</i></div></div></div>
 
     <div id="app" v-cloak>
+        
+        <div v-if="realUser" class="god-mode-banner">
+            <span>👁️ VISUALIZANDO COMO CLIENTE</span>
+            <button @click="exitGodMode">SAIR AGORA</button>
+        </div>
+
         <div class="toast-container"><div v-for="(t, i) in toasts" :key="i" class="toast" :class="t.type"><i class="material-icons-round">{{ t.type === 'success' ? 'check_circle' : 'error_outline' }}</i><span>{{ t.message }}</span></div></div>
 
         <div v-if="!currentUser" class="auth-wrapper">
             <div class="auth-box"><div class="auth-banner"><div class="brand-hero"><i class="material-icons-round">domain_add</i><h1>CondoSaas</h1></div><p>Gestão condominial inteligente.</p></div><div class="auth-content"><form @submit.prevent="handleLogin" class="auth-form animate-fade"><div class="header-text"><h2>Bem-vindo</h2><p>Acesse sua conta.</p></div><div class="input-group"><label>E-mail</label><input type="email" v-model="authForm.email" required class="modern-input"></div><div class="input-group"><label>Senha</label><input type="password" v-model="authForm.password" required class="modern-input"></div><button type="submit" class="btn btn-primary btn-lg w-100" :disabled="loading">{{ loading ? 'Entrando...' : 'Acessar Plataforma' }}</button></form></div></div>
         </div>
 
-        <div v-else class="app-layout">
+        <div v-else class="app-layout" :style="{ marginTop: realUser ? '40px' : '0' }">
             <aside class="sidebar">
                 <div class="brand"><div class="logo-box"><i class="material-icons-round">apartment</i></div><span class="brand-text">CondoSaas</span></div>
                 <nav class="nav-menu">
@@ -76,14 +92,40 @@
                         <a href="#" v-if="currentUser.type === 'syndic'" class="nav-item" :class="{active: currentView === 'admin'}" @click="currentView = 'admin'"><i class="material-icons-round">grid_view</i> <span>Admin</span></a>
                     </div>
                 </nav>
-                <div class="user-pill"><div class="avatar">{{ currentUser.name.charAt(0) }}</div><div class="user-meta"><strong>{{ currentUser.name }}</strong><span>{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : (currentUser.type === 'staff' ? 'Portaria' : 'Morador')) }}</span><span v-if="currentUser.credits > 0" style="color:var(--success); font-weight:700; font-size:0.75rem; margin-top:2px;">Crédito: R$ {{ currentUser.credits }}</span></div><button @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button></div>
+                <div class="user-pill">
+                    <div class="avatar" :style="{background: realUser ? '#EF4444' : ''}">{{ currentUser.name.charAt(0) }}</div>
+                    <div class="user-meta"><strong>{{ currentUser.name }}</strong><span>{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : (currentUser.type === 'staff' ? 'Portaria' : 'Morador')) }}</span><span v-if="currentUser.credits > 0" style="color:var(--success); font-weight:700; font-size:0.75rem; margin-top:2px;">Crédito: R$ {{ currentUser.credits }}</span></div>
+                    <button v-if="!realUser" @click="logout" class="btn-icon-mini"><i class="material-icons-round">logout</i></button>
+                </div>
             </aside>
 
             <main class="main-content">
                 <header class="top-header"><div class="page-title"><h1>{{ getTitle() }}</h1><span v-if="currentUser.type !== 'superuser'" class="condo-tag"><i class="material-icons-round">location_on</i> {{ condoName }}</span></div></header>
                 <div class="content-body">
                     
-                    <div v-if="currentUser.type === 'superuser'" class="animate-fade"><div class="kpi-grid"><div class="kpi-card purple"><div class="kpi-icon"><i class="material-icons-round">domain</i></div><div><h3>{{ condoList.length }}</h3><p>Condomínios</p></div></div><div class="kpi-card green"><div class="kpi-icon"><i class="material-icons-round">payments</i></div><div><h3>R$ {{ totalMRR }}</h3><p>MRR</p></div></div></div><div class="section-title"><h3>Clientes</h3><button class="btn btn-primary btn-sm" @click="showCondoModal = true">Novo</button></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Condomínio</th><th>Síndico</th><th>Status</th><th>Ações</th></tr></thead><tbody><tr v-for="c in condoList" :key="c.id" :style="{ opacity: c.suspended ? 0.6 : 1 }"><td><strong>{{ c.name }}</strong><br><small>{{ c.address }}</small></td><td>{{ c.syndicName }}<br><small>{{ c.syndicEmail }}</small></td><td><span class="status-pill" :class="c.suspended ? 'suspended' : 'approved'">{{ c.suspended ? 'SUSPENSO' : 'ATIVO' }}</span></td><td><button class="btn-icon-mini" @click="toggleCondoStatus(c)"><i class="material-icons-round" :style="{ color: c.suspended ? 'green' : 'red' }">{{ c.suspended ? 'play_circle' : 'pause_circle' }}</i></button></td></tr></tbody></table></div></div>
+                    <div v-if="currentUser.type === 'superuser'" class="animate-fade">
+                        <div class="kpi-grid"><div class="kpi-card purple"><div class="kpi-icon"><i class="material-icons-round">domain</i></div><div><h3>{{ condoList.length }}</h3><p>Total Condomínios</p></div></div><div class="kpi-card green"><div class="kpi-icon"><i class="material-icons-round">payments</i></div><div><h3>R$ {{ totalMRR }}</h3><p>MRR Mensal</p></div></div><div class="kpi-card"><div class="kpi-icon" style="background:#3B82F6;"><i class="material-icons-round">verified</i></div><div><h3>{{ activeCondosCount }}</h3><p>Clientes Ativos</p></div></div></div>
+                        <div class="admin-columns" style="margin-bottom: 20px;"><div class="card"><div class="card-title"><h3>Crescimento de Receita</h3></div><div class="chart-container"><canvas id="revenueChart"></canvas></div></div><div class="card"><div class="card-title"><h3>Status da Base</h3></div><div class="chart-container"><canvas id="statusChart"></canvas></div></div></div>
+                        <div class="section-title"><h3>Carteira de Clientes</h3><button class="btn btn-primary btn-sm" @click="showCondoModal = true">Novo Cliente</button></div>
+                        <div class="card no-padding">
+                            <table class="modern-table">
+                                <thead><tr><th>Condomínio</th><th>Plano</th><th>Status</th><th>Ações</th></tr></thead>
+                                <tbody>
+                                    <tr v-for="c in condoList" :key="c.id" :style="{ opacity: c.suspended ? 0.6 : 1 }">
+                                        <td><strong>{{ c.name }}</strong><br><small class="text-muted">{{ c.syndicEmail }}</small></td>
+                                        <td><span class="plan-badge" :class="'plan-' + (c.plan || 'bronze')">{{ plans[c.plan || 'bronze'].name }}</span></td>
+                                        <td><span class="status-pill" :class="c.suspended ? 'suspended' : 'approved'">{{ c.suspended ? 'SUSPENSO' : 'ATIVO' }}</span></td>
+                                        <td style="display:flex; gap:5px;">
+                                            <button class="btn-icon-mini" title="Acessar Painel" style="color: #4F46E5;" @click="enterGodMode(c)"><i class="material-icons-round">login</i></button>
+                                            <button class="btn-icon-mini" title="Detalhes" @click="openCondoDetails(c)"><i class="material-icons-round">visibility</i></button>
+                                            <button class="btn-icon-mini" @click="toggleCondoStatus(c)" :title="c.suspended ? 'Reativar' : 'Suspender'"><i class="material-icons-round" :style="{ color: c.suspended ? 'green' : 'red' }">{{ c.suspended ? 'play_circle' : 'pause_circle' }}</i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div v-if="currentView === 'calendar'" class="animate-fade"><div class="calendar-layout"><div class="card calendar-widget" style="min-height: 500px;"><div class="widget-header"><button class="nav-btn" @click="changeMonth(-1)"><i class="material-icons-round">chevron_left</i></button><h3>{{ monthLabel }}</h3><button class="nav-btn" @click="changeMonth(1)"><i class="material-icons-round">chevron_right</i></button></div><div class="days-grid"><div v-for="d in ['D','S','T','Q','Q','S','S']" class="d-head">{{ d }}</div><div v-for="n in paddingDays" class="d-cell empty"></div><div v-for="day in daysInMonth" class="d-cell" :class="{ 'today': isToday(day) }" :style="{ border: store.selectedDate.endsWith(String(day).padStart(2,'0')) ? '2px solid var(--primary)' : '' }" @click="selectDate(day)"><span>{{ day }}</span><div class="dots"><div v-for="res in getReservationsForDay(day)" class="dot" :style="{ background: getStatusColor(res.status) }"></div></div></div></div><div class="cal-legend"><small><span class="dot-sample green"></span> Aprovado</small><small><span class="dot-sample blue"></span> Pendente</small><small><span class="dot-sample gray"></span> Manutenção</small></div></div><div class="spaces-grid"><div v-for="space in spaces" :key="space.id" class="space-item"><div class="space-image" :style="{backgroundImage: 'url('+ (space.image || 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=500') +')'}"><div class="price-chip" :class="{'free': !space.price}">{{ space.price ? 'R$ '+space.price : 'Grátis' }}</div><div class="status-pill" :class="getSpaceStatusForDate(space.id).class" style="position:absolute; top:8px; left:8px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">{{ getSpaceStatusForDate(space.id).label }}</div><div v-if="getSpaceReservation(space.id)?.status === 'maintenance'" style="position:absolute; bottom:0; left:0; right:0; background:rgba(239, 68, 68, 0.95); color:white; font-size:0.75rem; padding:6px; text-align:center; font-weight:600;"><i class="material-icons-round" style="font-size:10px;">lock</i> {{ getSpaceReservation(space.id)?.reason }}</div></div><div class="space-details"><div style="display:flex; justify-content:space-between; align-items:center;"><h4>{{ space.name }}</h4><small style="font-size:0.7rem; color:var(--primary); font-weight:700;">{{ store.selectedDate.split('-').reverse().join('/') }}</small></div><p><i class="material-icons-round">group</i> {{ space.capacity }} p.</p><div class="space-btns"><template v-if="getSpaceStatusForDate(space.id).type === 'free'"><button class="btn btn-outline btn-sm w-100" @click="openBookingModal(space)">Reservar</button><button v-if="currentUser.type === 'syndic'" class="btn btn-icon btn-sm" @click="openBlockModal(space)"><i class="material-icons-round">block</i></button></template><template v-else-if="getSpaceStatusForDate(space.id).type === 'maintenance'"><button v-if="currentUser.type === 'syndic'" class="btn btn-primary w-100" style="background:var(--danger); border:none;" @click="deleteReservation(getSpaceReservation(space.id))"><i class="material-icons-round" style="font-size:16px; margin-right:5px;">lock_open</i> Desbloquear</button><button v-else class="btn btn-outline btn-sm w-100" disabled style="opacity:0.5; cursor:not-allowed;">Bloqueado</button></template><template v-else><button class="btn btn-outline btn-sm w-100" disabled style="opacity:0.5; cursor:not-allowed;">Ocupado</button></template></div></div></div></div></div></div>
                     <div v-if="currentView === 'reservations'" class="animate-fade"><div class="tabs-header" style="margin-bottom: 25px;"><button class="tab-btn" :class="{active: reservationTab === 'scheduled'}" @click="reservationTab = 'scheduled'">Agendadas</button><button class="tab-btn" :class="{active: reservationTab === 'cancelled'}" @click="reservationTab = 'cancelled'">Canceladas</button></div><div v-if="reservationTab === 'scheduled'"><div v-if="scheduledReservations.length === 0" class="empty-state" style="text-align:center; padding:50px;"><i class="material-icons-round" style="font-size:48px; opacity:0.5; margin-bottom:10px;">event_note</i><h3>Nenhuma agendada</h3></div><div class="tickets-list"><div v-for="res in scheduledReservations" :key="res.id" class="ticket-card"><div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div><div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill" :class="res.status">{{ res.status === 'approved' ? 'Confirmado' : 'Análise' }}</span></div><div class="ticket-right"><button class="btn-trash" @click="deleteReservation(res)" title="Cancelar"><i class="material-icons-round">delete</i></button></div></div></div></div><div v-else><div v-if="cancelledReservations.length === 0" class="empty-state" style="text-align:center; padding:50px; color:var(--text-muted);"><h3>Histórico Limpo</h3></div><div class="tickets-list"><div v-for="res in cancelledReservations" :key="res.id" class="ticket-card" style="opacity: 0.6; filter: grayscale(1);"><div class="ticket-left"><span class="day">{{ res.date.split('-')[2] }}</span><span class="month">{{ res.date.split('-')[1] }}</span></div><div class="ticket-mid"><h4>{{ getSpaceName(res.spaceId) }}</h4><p>{{ res.time }}</p><span class="status-pill suspended">CANCELADO</span></div></div></div></div></div>
                     <div v-if="currentView === 'residents' && currentUser.type === 'syndic'" class="animate-fade"><div class="card"><div class="card-title" style="margin-bottom:20px;"><h3>Moradores Cadastrados</h3><p style="color:var(--text-muted); font-size:0.9rem;">Gerencie o acesso dos moradores.</p></div><div class="input-icon-wrapper" style="margin-bottom:20px;"><input type="text" v-model="residentSearch" placeholder="Buscar por nome, apto ou email..." class="modern-input" style="margin-bottom:0;"><i class="material-icons-round" style="top:12px;">search</i></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Morador</th><th>Contato</th><th>Status</th><th>Ações</th></tr></thead><tbody><tr v-for="r in filteredResidents" :key="r.id" :style="{ opacity: r.blocked ? 0.6 : 1, background: r.blocked ? '#FEF2F2' : '' }"><td><strong>{{ r.name }}</strong><br><small class="text-muted">Apto: {{ r.apartment }}</small></td><td>{{ r.email }}</td><td><span class="status-pill" :class="r.blocked ? 'suspended' : 'approved'">{{ r.blocked ? 'BLOQUEADO' : 'ATIVO' }}</span></td><td style="display:flex; gap:5px;"><button class="btn-icon-mini" :title="r.blocked ? 'Desbloquear' : 'Bloquear'" @click="toggleBlockUser(r)"><i class="material-icons-round" :style="{ color: r.blocked ? 'green' : 'red' }">{{ r.blocked ? 'lock_open' : 'block' }}</i></button><button class="btn-icon-mini" title="Resetar Senha" @click="resetUserPassword(r)"><i class="material-icons-round">lock_reset</i></button></td></tr></tbody></table><div v-if="filteredResidents.length === 0" style="padding:20px; text-align:center; color:var(--text-muted);">Nenhum morador encontrado.</div></div></div></div>
@@ -91,28 +133,7 @@
                     <div v-if="currentView === 'finance'" class="animate-fade"><div class="finance-card"><small>Receita Estimada</small><h2>R$ {{ totalReceivables }}</h2></div><div class="card no-padding mt-4"><table class="modern-table"><thead><tr><th>Morador</th><th>Área</th><th>Data</th><th>Valor</th></tr></thead><tbody><tr v-for="res in paidReservations" :key="res.id"><td>{{ res.userName }}</td><td>{{ getSpaceName(res.spaceId) }}</td><td>{{ formatDate(res.date) }}</td><td class="text-green">+ R$ {{ res.price }}</td></tr></tbody></table></div></div>
                     <div v-if="currentView === 'staff_manage' && currentUser.type === 'syndic'" class="animate-fade"><div class="section-title"><h3>Equipe de Portaria</h3><button class="btn btn-primary btn-sm" @click="showStaffModal = true">Adicionar</button></div><div class="card no-padding"><table class="modern-table"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th>Ações</th></tr></thead><tbody><tr v-for="s in staffList" :key="s.id"><td>{{ s.name }}</td><td>{{ s.email }}</td><td><span class="status-pill pending">STAFF</span></td><td><button class="btn-icon-mini" style="color:var(--danger);" @click="removeStaffMember(s.id)" title="Remover da Equipe"><i class="material-icons-round">person_remove</i></button></td></tr></tbody></table><div v-if="staffList.length === 0" style="padding:20px; text-align:center; color:var(--text-muted);">Nenhuma equipe cadastrada.</div></div></div>
                     <div v-if="currentView === 'profile'" class="animate-fade"><div class="card profile-card"><div class="profile-avatar-lg">{{ currentUser.name.charAt(0) }}</div><h2 style="margin-bottom: 5px;">{{ currentUser.name }}</h2><p style="color: var(--text-muted);">{{ currentUser.type === 'superuser' ? 'Admin' : (currentUser.type === 'syndic' ? 'Síndico' : (currentUser.type === 'staff' ? 'Portaria' : 'Morador')) }}</p><div class="credit-display">R$ {{ currentUser.credits || '0,00' }}<div style="font-size: 0.8rem; font-weight: 500; margin-top: 5px;">Seu Saldo de Créditos</div></div><button @click="logout" class="btn btn-outline w-100" style="color: var(--danger); border-color: var(--danger); margin-top: 20px;"><i class="material-icons-round">logout</i> Sair da Conta</button></div></div>
-
-                    <div v-if="currentView === 'staff_dashboard' && currentUser.type === 'staff'" class="animate-fade">
-                        <div class="staff-header">
-                            <div><h2 style="margin-bottom:0;">Portaria Digital</h2><p style="opacity:0.8; font-size:0.9rem;">{{ staffFilterMode === 'day' ? 'Visão Diária' : 'Visão Mensal' }}</p></div>
-                            <div class="staff-filters"><div class="staff-switcher"><button class="staff-btn" :class="{active: staffFilterMode === 'day'}" @click="staffFilterMode = 'day'">Dia</button><button class="staff-btn" :class="{active: staffFilterMode === 'month'}" @click="staffFilterMode = 'month'">Mês</button></div><input v-if="staffFilterMode === 'day'" type="date" v-model="staffDate"><input v-else type="month" v-model="staffMonth"><button class="btn btn-primary" @click="generateDailyReport"><i class="material-icons-round">print</i></button></div>
-                        </div>
-                        <div class="card no-padding">
-                            <div class="card-title" style="padding:20px;"><h3>{{ staffFilterMode === 'day' ? `Reservas do Dia: ${staffDate.split('-').reverse().join('/')}` : `Reservas de ${staffMonth.split('-').reverse().join('/')}` }}</h3></div>
-                            <table class="modern-table">
-                                <thead><tr><th>Data/Hora</th><th>Área</th><th>Morador</th><th>Status</th></tr></thead>
-                                <tbody>
-                                    <tr v-for="res in staffFilteredReservations" :key="res.id" @click="openCheckinModal(res)" style="cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'">
-                                        <td style="font-weight:800; color:var(--primary);"><span v-if="staffFilterMode === 'month'" style="font-size:0.8rem; display:block; color:var(--text-muted);">{{ res.date.split('-').reverse().join('/').substring(0, 5) }}</span>{{ res.time }}</td>
-                                        <td>{{ getSpaceName(res.spaceId) }}</td>
-                                        <td>{{ res.userName }}</td>
-                                        <td><span class="status-pill" :class="res.status">{{ res.status === 'approved' ? 'CONFIRMADO' : 'PENDENTE' }}</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div v-if="staffFilteredReservations.length === 0" style="padding:40px; text-align:center; color:var(--text-muted);"><i class="material-icons-round" style="font-size:40px; opacity:0.3;">event_available</i><br>Nenhuma reserva encontrada.</div>
-                        </div>
-                    </div>
+                    <div v-if="currentView === 'staff_dashboard' && currentUser.type === 'staff'" class="animate-fade"><div class="staff-header"><div><h2 style="margin-bottom:0;">Portaria Digital</h2><p style="opacity:0.8; font-size:0.9rem;">{{ staffFilterMode === 'day' ? 'Visão Diária' : 'Visão Mensal' }}</p></div><div class="staff-filters"><div class="staff-switcher"><button class="staff-btn" :class="{active: staffFilterMode === 'day'}" @click="staffFilterMode = 'day'">Dia</button><button class="staff-btn" :class="{active: staffFilterMode === 'month'}" @click="staffFilterMode = 'month'">Mês</button></div><input v-if="staffFilterMode === 'day'" type="date" v-model="staffDate"><input v-else type="month" v-model="staffMonth"><button class="btn btn-primary" @click="generateDailyReport"><i class="material-icons-round">print</i></button></div></div><div class="card no-padding"><div class="card-title" style="padding:20px;"><h3>{{ staffFilterMode === 'day' ? `Reservas do Dia: ${staffDate.split('-').reverse().join('/')}` : `Reservas de ${staffMonth.split('-').reverse().join('/')}` }}</h3></div><table class="modern-table"><thead><tr><th>Data/Hora</th><th>Área</th><th>Morador</th><th>Status</th></tr></thead><tbody><tr v-for="res in staffFilteredReservations" :key="res.id" @click="openCheckinModal(res)" style="cursor:pointer; transition:0.2s;" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'"><td style="font-weight:800; color:var(--primary);"><span v-if="staffFilterMode === 'month'" style="font-size:0.8rem; display:block; color:var(--text-muted);">{{ res.date.split('-').reverse().join('/').substring(0, 5) }}</span>{{ res.time }}</td><td>{{ getSpaceName(res.spaceId) }}</td><td>{{ res.userName }}</td><td><span class="status-pill" :class="res.status">{{ res.status === 'approved' ? 'CONFIRMADO' : 'PENDENTE' }}</span></td></tr></tbody></table><div v-if="staffFilteredReservations.length === 0" style="padding:40px; text-align:center; color:var(--text-muted);"><i class="material-icons-round" style="font-size:40px; opacity:0.3;">event_available</i><br>Nenhuma reserva encontrada.</div></div></div>
 
                 </div>
             </main>
@@ -123,88 +144,16 @@
             </nav>
         </div>
 
-        <div class="modal-backdrop" v-if="showModal || showCondoModal || showBlockModal || showDateDetails || showStaffModal || showCheckinModal" @click.self="closeAllModals">
+        <div class="modal-backdrop" v-if="showModal || showCondoModal || showBlockModal || showDateDetails || showStaffModal || showCheckinModal || showCondoDetailsModal" @click.self="closeAllModals">
+            <div class="modal-window" v-if="showCondoDetailsModal && selectedCondoStats"><div class="modal-h"><h3>{{ selectedCondoStats.name }}</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><div class="condo-detail-grid"><div class="detail-item"><small>Plano Atual</small><strong>{{ plans[selectedCondoStats.plan || 'bronze'].name }} (R$ {{ plans[selectedCondoStats.plan || 'bronze'].price }})</strong></div><div class="detail-item"><small>Status</small><strong :style="{color: selectedCondoStats.suspended ? 'red' : 'green'}">{{ selectedCondoStats.suspended ? 'Suspenso' : 'Ativo' }}</strong></div><div class="detail-item"><small>Síndico</small><strong>{{ selectedCondoStats.syndicName }}</strong></div><div class="detail-item"><small>Email</small><strong>{{ selectedCondoStats.syndicEmail }}</strong></div></div><div style="background:#FEF2F2; padding:10px; border-radius:8px; border:1px solid #FECACA; text-align:center;"><small style="color:#B91C1C;">Zona de Perigo</small><button class="btn btn-outline w-100" style="color:#B91C1C; border-color:#B91C1C; margin-top:5px;" @click="toggleCondoStatus(selectedCondoStats)">{{ selectedCondoStats.suspended ? 'Reativar Acesso' : 'Suspender Acesso' }}</button></div></div></div>
             
-            <div class="modal-window" v-if="showModal">
-                <div class="modal-h"><h3>Nova Reserva</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div>
-                <div class="modal-b" style="max-height: 70vh; overflow-y: auto;">
-                    <p class="mb-3">Data: <strong>{{ store.selectedDate.split('-').reverse().join('/') }}</strong></p>
-                    <p class="mb-3">Área: <strong>{{ selectedSpace?.name }}</strong></p>
-                    <label style="font-size:0.8rem; font-weight:700;">Horário:</label>
-                    <select v-model="form.time" class="modern-input" style="margin-top:5px;"><option v-for="slot in availableTimeSlots" :key="slot" :value="slot">{{ slot }}</option></select>
-                    
-                    <details>
-                        <summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">group_add</i> Lista de Convidados ({{ guestList.length }})</summary>
-                        <div class="mini-form">
-                            <input type="text" v-model="tempGuest.name" placeholder="Nome Completo" class="modern-input" style="margin:0;">
-                            <input type="text" v-model="tempGuest.doc" placeholder="RG/CPF" class="modern-input" style="margin:0;">
-                            <button class="btn-plus" @click="addGuest"><i class="material-icons-round">add</i></button>
-                        </div>
-                        <ul class="mini-list">
-                            <li v-for="(g, i) in guestList" :key="i">
-                                <span>{{ g.name }} <small>({{ g.doc }})</small></span>
-                                <i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeGuest(i)">close</i>
-                            </li>
-                        </ul>
-                    </details>
-
-                    <details>
-                        <summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">local_shipping</i> Lista de Fornecedores ({{ supplierList.length }})</summary>
-                        <div class="mini-form">
-                            <input type="text" v-model="tempSupplier.name" placeholder="Nome Prestador" class="modern-input" style="margin:0;">
-                            <input type="text" v-model="tempSupplier.company" placeholder="Empresa" class="modern-input" style="margin:0;">
-                            <button class="btn-plus" @click="addSupplier"><i class="material-icons-round">add</i></button>
-                        </div>
-                        <ul class="mini-list">
-                            <li v-for="(s, i) in supplierList" :key="i">
-                                <span>{{ s.name }} <small>({{ s.company }})</small></span>
-                                <i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeSupplier(i)">close</i>
-                            </li>
-                        </ul>
-                    </details>
-                </div>
-                <div class="modal-f"><button class="btn btn-primary w-100" @click="confirmBooking">Confirmar</button></div>
-            </div>
-
-            <div class="modal-window large" v-if="showCheckinModal && checkinReservation">
-                <div class="modal-h">
-                    <h3>Controle de Acesso</h3>
-                    <button @click="closeAllModals"><i class="material-icons-round">close</i></button>
-                </div>
-                <div class="modal-b" style="max-height: 70vh; overflow-y: auto;">
-                    <div style="background:#F1F5F9; padding:15px; border-radius:12px; margin-bottom:15px;">
-                        <strong>{{ checkinReservation.userName }}</strong><br>
-                        <small>{{ checkinReservation.date.split('-').reverse().join('/') }} • {{ checkinReservation.time }}</small>
-                    </div>
-
-                    <h4 style="margin-bottom:10px;">Convidados</h4>
-                    <div v-if="!checkinReservation.guests || checkinReservation.guests.length === 0" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Nenhum convidado na lista.</div>
-                    <div v-else>
-                        <div v-for="(g, idx) in checkinReservation.guests" :key="idx" class="checkin-row">
-                            <div><strong>{{ g.name }}</strong><br><small>{{ g.doc }}</small></div>
-                            <button class="check-btn" :class="{checked: g.checkedIn}" @click="toggleCheckin(g, 'guest')">
-                                <i class="material-icons-round">check</i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <h4 style="margin-top:20px; margin-bottom:10px;">Fornecedores</h4>
-                    <div v-if="!checkinReservation.suppliers || checkinReservation.suppliers.length === 0" style="color:var(--text-muted); font-size:0.9rem;">Nenhum fornecedor.</div>
-                    <div v-else>
-                        <div v-for="(s, idx) in checkinReservation.suppliers" :key="idx" class="checkin-row">
-                            <div><strong>{{ s.name }}</strong><br><small>{{ s.company }}</small></div>
-                            <button class="check-btn" :class="{checked: s.checkedIn}" @click="toggleCheckin(s, 'supplier')">
-                                <i class="material-icons-round">check</i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="modal-window" v-if="showCondoModal"><div class="modal-h"><h3>Novo Cliente</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><input type="text" v-model="newCondo.name" class="modern-input mb-3" placeholder="Nome Condomínio"><input type="text" v-model="newCondo.address" class="modern-input mb-3" placeholder="Endereço"><label style="font-size:0.8rem; font-weight:700;">Plano de Assinatura</label><select v-model="newCondo.plan" class="modern-input mb-3"><option value="bronze">Bronze (R$ 150)</option><option value="silver">Prata (R$ 300)</option><option value="gold">Ouro (R$ 600)</option></select><h4 style="margin-bottom:10px;">Dados do Síndico</h4><input type="text" v-model="newCondo.syndicName" class="modern-input mb-3" placeholder="Nome Completo"><input type="email" v-model="newCondo.syndicEmail" class="modern-input mb-3" placeholder="Email de Login"><input type="text" v-model="newCondo.syndicPassword" class="modern-input" placeholder="Senha Inicial"></div><div class="modal-f"><button class="btn btn-primary w-100" @click="createCondoSuper">Cadastrar</button></div></div>
 
             <div class="modal-window" v-if="showStaffModal"><div class="modal-h"><h3>Novo Porteiro</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;">O usuário já deve ter cadastro no app como morador. Digite o e-mail dele abaixo para promovê-lo.</p><input type="email" v-model="staffEmailInput" class="modern-input" placeholder="E-mail do usuário"></div><div class="modal-f"><button class="btn btn-primary w-100" @click="addStaffMember">Promover a Staff</button></div></div>
             <div class="modal-window large" v-if="showDateDetails"><div class="modal-h"><h3>Dia {{ store.selectedDate.split('-')[2] }}</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><div class="tabs-header"><button class="tab-btn" :class="{active: activeTab === 'available'}" @click="activeTab = 'available'">Disponíveis</button><button class="tab-btn" :class="{active: activeTab === 'occupied'}" @click="activeTab = 'occupied'">Ocupados</button></div><div v-if="activeTab === 'available'" class="animate-fade"><div v-if="availableSpaces.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">Tudo ocupado!</div><div v-for="space in availableSpaces" :key="space.id" class="list-item"><div style="display:flex; align-items:center;"><div class="item-img" :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/150') +')'}"></div><div class="item-info"><h4>{{ space.name }}</h4><p>{{ space.capacity }} pessoas</p></div></div><div style="display:flex; gap:5px;"><button class="btn btn-primary btn-sm" @click="openBookingModal(space)">Reservar</button></div></div></div><div v-else class="animate-fade"><div v-if="occupiedSpaces.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">Nada reservado.</div><div v-for="space in occupiedSpaces" :key="space.id" class="list-item" :style="{ background: getSpaceReservation(space.id)?.status === 'maintenance' ? '#FEF2F2' : '' }"><div style="display:flex; align-items:center; flex:1;"><div class="item-img" :style="{backgroundImage: 'url('+ (space.image || 'https://via.placeholder.com/150') +')'}"></div><div class="item-info"><h4>{{ space.name }}</h4><p v-if="getSpaceReservation(space.id)?.status === 'maintenance'" style="color:var(--danger); font-weight:700;"><i class="material-icons-round" style="font-size:12px;">lock</i> {{ getSpaceReservation(space.id)?.reason }}</p><p v-else>Reservado por {{ getSpaceReservation(space.id)?.userName }}</p></div></div><div v-if="currentUser.type === 'syndic' && getSpaceReservation(space.id)?.status === 'maintenance'"><button class="btn-icon-mini" style="background:var(--danger); color:white;" @click="deleteReservation(getSpaceReservation(space.id))"><i class="material-icons-round">lock_open</i></button></div><span v-else class="status-pill" :class="getSpaceReservation(space.id)?.status === 'maintenance' ? 'suspended' : 'approved'">{{ getSpaceReservation(space.id)?.status === 'maintenance' ? 'BLOQUEADO' : 'OCUPADO' }}</span></div></div></div></div>
+            <div class="modal-window" v-if="showModal"><div class="modal-h"><h3>Nova Reserva</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b" style="max-height: 70vh; overflow-y: auto;"><p class="mb-3">Data: <strong>{{ store.selectedDate.split('-').reverse().join('/') }}</strong></p><p class="mb-3">Área: <strong>{{ selectedSpace?.name }}</strong></p><label style="font-size:0.8rem; font-weight:700;">Horário:</label><select v-model="form.time" class="modern-input" style="margin-top:5px;"><option v-for="slot in availableTimeSlots" :key="slot" :value="slot">{{ slot }}</option></select><details><summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">group_add</i> Lista de Convidados ({{ guestList.length }})</summary><div class="mini-form"><input type="text" v-model="tempGuest.name" placeholder="Nome Completo" class="modern-input" style="margin:0;"><input type="text" v-model="tempGuest.doc" placeholder="RG/CPF" class="modern-input" style="margin:0;"><button class="btn-plus" @click="addGuest"><i class="material-icons-round">add</i></button></div><ul class="mini-list"><li v-for="(g, i) in guestList" :key="i"><span>{{ g.name }} <small>({{ g.doc }})</small></span><i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeGuest(i)">close</i></li></ul></details><details><summary><i class="material-icons-round" style="vertical-align:middle; font-size:16px;">local_shipping</i> Lista de Fornecedores ({{ supplierList.length }})</summary><div class="mini-form"><input type="text" v-model="tempSupplier.name" placeholder="Nome Prestador" class="modern-input" style="margin:0;"><input type="text" v-model="tempSupplier.company" placeholder="Empresa" class="modern-input" style="margin:0;"><button class="btn-plus" @click="addSupplier"><i class="material-icons-round">add</i></button></div><ul class="mini-list"><li v-for="(s, i) in supplierList" :key="i"><span>{{ s.name }} <small>({{ s.company }})</small></span><i class="material-icons-round" style="color:var(--danger); cursor:pointer;" @click="removeSupplier(i)">close</i></li></ul></details></div><div class="modal-f"><button class="btn btn-primary w-100" @click="confirmBooking">Confirmar</button></div></div>
+            <div class="modal-window large" v-if="showCheckinModal && checkinReservation"><div class="modal-h"><h3>Controle de Acesso</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b" style="max-height: 70vh; overflow-y: auto;"><div style="background:#F1F5F9; padding:15px; border-radius:12px; margin-bottom:15px;"><strong>{{ checkinReservation.userName }}</strong><br><small>{{ checkinReservation.date.split('-').reverse().join('/') }} • {{ checkinReservation.time }}</small></div><h4 style="margin-bottom:10px;">Convidados</h4><div v-if="!checkinReservation.guests || checkinReservation.guests.length === 0" style="color:var(--text-muted); font-size:0.9rem; margin-bottom:20px;">Nenhum convidado na lista.</div><div v-else><div v-for="(g, idx) in checkinReservation.guests" :key="idx" class="checkin-row"><div><strong>{{ g.name }}</strong><br><small>{{ g.doc }}</small></div><button class="check-btn" :class="{checked: g.checkedIn}" @click="toggleCheckin(g, 'guest')"><i class="material-icons-round">check</i></button></div></div><h4 style="margin-top:20px; margin-bottom:10px;">Fornecedores</h4><div v-if="!checkinReservation.suppliers || checkinReservation.suppliers.length === 0" style="color:var(--text-muted); font-size:0.9rem;">Nenhum fornecedor.</div><div v-else><div v-for="(s, idx) in checkinReservation.suppliers" :key="idx" class="checkin-row"><div><strong>{{ s.name }}</strong><br><small>{{ s.company }}</small></div><button class="check-btn" :class="{checked: s.checkedIn}" @click="toggleCheckin(s, 'supplier')"><i class="material-icons-round">check</i></button></div></div></div></div>
             <div class="modal-window" v-if="showBlockModal"><div class="modal-h"><h3>Bloquear Período</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><input type="date" v-model="form.date" class="modern-input"><input type="date" v-model="form.endDate" class="modern-input"><input type="text" v-model="form.reason" class="modern-input" placeholder="Motivo do Bloqueio"></div><div class="modal-f"><button class="btn btn-primary w-100" style="background:var(--danger);" @click="confirmBlock">Confirmar Bloqueio</button></div></div>
-            <div class="modal-window" v-if="showCondoModal"><div class="modal-h"><h3>Novo Cliente</h3><button @click="closeAllModals"><i class="material-icons-round">close</i></button></div><div class="modal-b"><input type="text" v-model="newCondo.name" class="modern-input mb-3" placeholder="Nome Condomínio"><input type="text" v-model="newCondo.address" class="modern-input mb-3" placeholder="Endereço"><input type="text" v-model="newCondo.syndicName" class="modern-input mb-3" placeholder="Nome Síndico"><input type="email" v-model="newCondo.syndicEmail" class="modern-input mb-3" placeholder="Email Síndico"><input type="text" v-model="newCondo.syndicPassword" class="modern-input" placeholder="Senha Inicial"></div><div class="modal-f"><button class="btn btn-primary w-100" @click="createCondo">Cadastrar</button></div></div>
         </div>
     </div>
     <script type="module" src="src/main.js"></script>
